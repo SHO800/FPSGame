@@ -1,0 +1,42 @@
+fileFormatVersion: 2
+guid: 5df9ee1c47f9ba44ba11c8ea501e7171
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Light
+    second: {fileID: 2100000, guid: 4c3f3be197b70784c9c888c90a4cfddc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Small-Room46
+    second: {fileID: 2100000, guid: ff05a8b3a4e9a3943a0e91012258b071, type: 2}
+  - first:
+      type: UnityEngine:Texture
+      assembly: UnityEngine.CoreModule
+      name: Small-Room46_BaseColor.1001-Small-Room46_Alpha.1001
+    second: {fileID: 2800000, guid: 44b4a47b48496ce49b0f769cac6ce3a3, type: 3}
+  - first:
+      type: UnityEngine:Texture
+      assembly: UnityEngine.CoreModule
+      name: Small-Room46_Emission.1001
+    second: {fileID: 2800000, guid: 569f1d8c754e141419c3673607eb48d3, type: 3}
+  - first:
+      type: UnityEngine:Texture
+      assembly: UnityEngine.CoreModule
+      name: Small-Room46_Metallic.1001-Small-Room46_Roughness.1001.standard
+    second: {fileID: 2800000, guid: 8c99966bbb401e3489ed30f6455e6cd6, type: 3}
+  - first:
+      type: UnityEngine:Texture
+      assembly: UnityEngine.CoreModule
+      name: Small-Room46_Normal.1001.normal
+    second: {fileID: 2800000, guid: 53decfb7dbdc48e4f9b44ffe0231eaff, type: 3}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: cc45016b844e7624dae3aec10fb443ea, type: 3}
+  reverseAxis: 0
+  renderPipeline: 0

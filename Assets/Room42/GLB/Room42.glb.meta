@@ -1,0 +1,37 @@
+fileFormatVersion: 2
+guid: eba78628d9c73774a8f21a9aa5557ded
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Light
+    second: {fileID: 2100000, guid: 2e77626a6bbf77a46a01e0c1ec48f388, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: World
+    second: {fileID: 2100000, guid: fbcdf48987d714d43afcb4a931cc4aa2, type: 2}
+  - first:
+      type: UnityEngine:Texture
+      assembly: UnityEngine.CoreModule
+      name: World_BaseColor.1001
+    second: {fileID: 2800000, guid: 1c05b47714439b24c8628a8eeb72e180, type: 3}
+  - first:
+      type: UnityEngine:Texture
+      assembly: UnityEngine.CoreModule
+      name: World_Normal.1001.normal
+    second: {fileID: 2800000, guid: fbe1733e615384e478200f6332440e41, type: 3}
+  - first:
+      type: UnityEngine:Texture
+      assembly: UnityEngine.CoreModule
+      name: World_Roughness.1001.standard
+    second: {fileID: 2800000, guid: 1164d5d9538f931468640e30cfbd6cda, type: 3}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: cc45016b844e7624dae3aec10fb443ea, type: 3}
+  reverseAxis: 0
+  renderPipeline: 0
