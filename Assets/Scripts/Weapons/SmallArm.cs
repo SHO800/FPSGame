@@ -34,6 +34,7 @@ public class SmallArm : MonoBehaviour
             _interval = fireRate; // インターバル設定
             GameObject bullet = PhotonNetwork.Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
             bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
+            Destroy(bullet, 5f);
         }
         
     }

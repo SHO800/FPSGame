@@ -17,6 +17,8 @@ public class PlayerController : MonoBehaviourPun
     public float mouseSensibilityVertical = 0.5f;
     public GameObject gun1;
     public Transform headBone;
+
+    [HideInInspector] public bool isOpenFire = false; 
     // public float handItem;
 
     private Rigidbody _rb;
@@ -47,11 +49,21 @@ public class PlayerController : MonoBehaviourPun
 
     private void Update()
     {
+        //TODO: 各プレイヤーが発射中かどうかだけを変数で同期して各クライアントで同期しない弾丸を生成する
         if (!photonView.IsMine) return;
+        
+        if (Input.GetMouseButtonDown(0))
+        {
+            isOpenFire = true;
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            isOpenFire = false;
+        }
+
         MovePosition();
         RotateHead();
-        
-
 
         // キーが押されたら銃を取り出す
         if (Input.GetKeyDown("1"))
@@ -71,6 +83,7 @@ public class PlayerController : MonoBehaviourPun
         {
             _handItemScript.CloseFire();
         }
+        
     }
 
     private void MovePosition() // 移動

@@ -2785,7 +2785,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 0.2
+  m_Radius: 12.36
   m_Height: 1.85
   m_Direction: 1
   m_Center: {x: 0, y: 0.925, z: 0}
@@ -2808,6 +2808,7 @@ MonoBehaviour:
   mouseSensibilityVertical: 0.5
   gun1: {fileID: 911385219652104893, guid: 961d4411fc931a7489e92471e43a9026, type: 3}
   headBone: {fileID: 0}
+  isOpenFire: 0
 --- !u!114 &678310547870292088
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2823,7 +2824,7 @@ MonoBehaviour:
   ObservedComponentsFoldoutOpen: 1
   Group: 0
   prefixField: -1
-  Synchronization: 3
+  Synchronization: 2
   OwnershipTransfer: 0
   observableSearch: 2
   ObservedComponents:
@@ -2861,8 +2862,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SynchronizeVelocity: 1
-  m_SynchronizeAngularVelocity: 0
-  m_TeleportEnabled: 0
+  m_SynchronizeAngularVelocity: 1
+  m_TeleportEnabled: 1
   m_TeleportIfDistanceGreaterThan: 3
 --- !u!1 &5709946408017281525
 GameObject:
