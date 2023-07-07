@@ -26,13 +26,13 @@ public class NormalBullet : MonoBehaviour
     // Triggerだと貫通することがあるのでCollisionにしてる
     private void OnCollisionEnter(Collision other)
     {
-        Debug.Log("Enter");
+        // Debug.Log("Enter");
         Destroy(gameObject);
     }
     
     private void OnCollisionStay(Collision other)
     {
-        Debug.Log("Stay");
+        // Debug.Log("Stay");
         Destroy(gameObject);
     }
 

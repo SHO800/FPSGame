@@ -1,14 +1,13 @@
-using System.Security.Cryptography.X509Certificates;
 using Photon.Pun;
 using UnityEngine;
 
-public class SmallArm : MonoBehaviour
+public class SmallArm : MonoBehaviourPun
 {
     public float fireRate;
     public float damage;
     public float bulletSpeed;
     public float capacity;
-    public string bulletObject = "Weapons/Bullets/NormalBullet";
+    public GameObject bulletObject;
     // 発射する弾のオブジェクトに着弾時の効果とか仕込もう
 
     [HideInInspector]
@@ -23,6 +22,7 @@ public class SmallArm : MonoBehaviour
 
     private void Start()
     {
+        _owner = transform.root;
         _muzzle = transform.Find("Muzzle");
     }
     
@@ -32,21 +32,23 @@ public class SmallArm : MonoBehaviour
         if (_isShooting && _interval <= 0) // 発射中かつインターバルがなければ
         {
             _interval = fireRate; // インターバル設定
-            GameObject bullet = PhotonNetwork.Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
+            GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
             bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
             Destroy(bullet, 5f);
         }
         
     }
-
-    public void OpenFire(Transform owner)
+    
+    public void OpenFire(bool status)
     {
-        _owner = owner; // 銃を使った人
-        _isShooting = true;
+        Debug.Log($"OpenFire({status})");
+        photonView.RPC(nameof(OpenFireRpc), RpcTarget.All, status);
     }
 
-    public void CloseFire()
+    [PunRPC]
+    private void OpenFireRpc(bool status)
     {
-        _isShooting = false;
+        Debug.Log($"RPC({status})");
+        _isShooting = status;
     }
 }

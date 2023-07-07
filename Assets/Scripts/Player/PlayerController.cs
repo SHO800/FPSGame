@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviourPun
     public float jump = 1f;
     public float mouseSensibilityHorizontal = 1f;
     public float mouseSensibilityVertical = 0.5f;
-    public GameObject gun1;
+    public string gun1 = "Weapons/assault1";
     public Transform headBone;
 
     [HideInInspector] public bool isOpenFire = false; 
@@ -27,6 +27,7 @@ public class PlayerController : MonoBehaviourPun
     private bool _isOnGround;
     private Transform _handSlot;
     private SmallArm _handItemScript;
+    private PlayerData _playerData;
     
 
     private void Awake()
@@ -39,7 +40,8 @@ public class PlayerController : MonoBehaviourPun
     {
         _rb = transform.GetComponent<Rigidbody>();
         _mainCamera = Camera.main;
-
+        _playerData = gameObject.GetComponent<PlayerData>();
+        
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
@@ -51,39 +53,23 @@ public class PlayerController : MonoBehaviourPun
     {
         //TODO: 各プレイヤーが発射中かどうかだけを変数で同期して各クライアントで同期しない弾丸を生成する
         if (!photonView.IsMine) return;
-        
-        if (Input.GetMouseButtonDown(0))
-        {
-            isOpenFire = true;
-        }
-
-        if (Input.GetMouseButtonUp(0))
-        {
-            isOpenFire = false;
-        }
 
         MovePosition();
         RotateHead();
-
-        // キーが押されたら銃を取り出す
-        if (Input.GetKeyDown("1"))
-        {
-            if (_handSlot.childCount > 0) Destroy(_handSlot.GetChild(0)); // 手持ちスロットにすでになにか持っていたら消す
-            GameObject handItem = Instantiate(gun1, new Vector3(0f, 0f, 0f), Quaternion.identity); // 銃を呼び出す
-            handItem.transform.SetParent(_handSlot, false); // 銃の親を手持ちスロットにする
-            _handItemScript = handItem.GetComponent<SmallArm>();
-        }
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            _handItemScript.OpenFire(transform);
-        }
-
-        if (Input.GetMouseButtonUp(0))
-        {
-            _handItemScript.CloseFire();
-        }
+    
         
+        // キーが押されたら銃を取り出す
+        for (int i = 1; i <= 9; i++)
+        {
+            if (Input.GetKeyDown(i.ToString()))
+            {
+                photonView.RPC(nameof(SetHandItem), RpcTarget.All, i);
+            }
+
+            if (Input.GetMouseButtonDown(0)) { _handItemScript.OpenFire(true); }
+            if (Input.GetMouseButtonUp(0)) { _handItemScript.OpenFire(false); }
+        }
+
     }
 
     private void MovePosition() // 移動
@@ -98,9 +84,10 @@ public class PlayerController : MonoBehaviourPun
         Vector3 moveZ = cameraForward * (Input.GetAxis("Vertical") * 1); // 前後(カメラ基準)
         Vector3 moveX = _mainCamera.transform.right * (Input.GetAxis("Horizontal") * 1); // 左右(カメラ基準)
         Vector3 moveDirection = moveX + moveZ;
+        Vector3 move = moveDirection * speed;
         
         // 移動実行
-        _rb.velocity = moveDirection * speed + new Vector3(0, _rb.velocity.y, 0);
+        _rb.velocity = move  + new Vector3(0, _rb.velocity.y, 0);
         // 地面でスペースを押したらジャンプ
         // Debug.Log(_isOnGround);
         if (Input.GetKey(KeyCode.Space) && _isOnGround)
@@ -127,7 +114,19 @@ public class PlayerController : MonoBehaviourPun
                 ), Space.Self);
         }
     }
-    
+
+    [PunRPC]
+    private void SetHandItem(int itemNum)
+    {
+        if (_handSlot.childCount > 0) // もしすでに手に持っていたら
+        {
+            Destroy(_handSlot.GetChild(0).gameObject); // 手持ちスロットにすでになにか持っていたら消す
+            
+        } 
+        GameObject handItem = Instantiate(_playerData.ItemSlot[itemNum-1], new Vector3(0f, 0f, 0f), Quaternion.identity); // 銃を呼び出す
+        handItem.transform.SetParent(_handSlot, false); // 銃の親を手持ちスロットにする
+        _handItemScript = handItem.GetComponent<SmallArm>();
+    }
     
     private void OnCollisionStay(Collision other)
     {

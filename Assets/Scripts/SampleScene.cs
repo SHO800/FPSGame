@@ -20,7 +20,7 @@ public class SampleScene : MonoBehaviourPunCallbacks
 
     // ゲームサーバーへの接続が成功した時に呼ばれるコールバック
     public override void OnJoinedRoom() {
-        var position = new Vector3(Random.Range(-3f, 3f), Random.Range(-3f, 3f));
+        var position = new Vector3(0, -3f, 0);
         GameObject player = PhotonNetwork.Instantiate("Player", position, Quaternion.identity);
         GameObject cameraRoot = GameObject.FindWithTag("PlayerCameraRoot");
         Debug.Log(cameraRoot);
