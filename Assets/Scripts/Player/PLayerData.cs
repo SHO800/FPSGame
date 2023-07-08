@@ -16,10 +16,12 @@ public class PlayerData : MonoBehaviourPunCallbacks
     private void Start()
     {
         // デバッグ用
-        LoadOuts = new GameObject[debugLoadOuts.Length];
-        Array.Copy(debugLoadOuts, LoadOuts, debugLoadOuts.Length);
+        StoredItems = new GameObject[debugLoadOuts.Length];
+        Array.Copy(debugLoadOuts, StoredItems, debugLoadOuts.Length);
+        Debug.Log(StoredItems);
+
         
-        StoredItems = new GameObject[LoadOuts.Length];
-        Array.Copy(LoadOuts, StoredItems, LoadOuts.Length);
+        // StoredItems = new GameObject[LoadOuts.Length];
+        // Array.Copy(LoadOuts, StoredItems, LoadOuts.Length);
     }
 }

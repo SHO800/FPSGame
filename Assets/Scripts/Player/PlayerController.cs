@@ -1,4 +1,5 @@
 using Photon.Pun;
+using TMPro;
 using UnityEngine;
 using Cursor = UnityEngine.Cursor;
 
@@ -13,6 +14,7 @@ public class PlayerController : MonoBehaviourPun
     public float mouseSensibilityVertical = 0.5f;
     public string gun1 = "Weapons/assault1";
     public Transform headBone;
+    public Transform heldItemSlot;
 
     [HideInInspector] public bool isOpenFire = false;
 
@@ -20,10 +22,10 @@ public class PlayerController : MonoBehaviourPun
     private Camera _mainCamera;
     private Animator _anim;
     private bool _isOnGround;
-    private Transform _heldItemSlot;
     private SmallArm _heldItemScript;
     private PlayerData _playerData;
-    
+
+    public TextMeshPro text;
 
     private void Awake()
     {
@@ -33,15 +35,19 @@ public class PlayerController : MonoBehaviourPun
 
     private void Start()
     {
-        _rb = transform.GetComponent<Rigidbody>();
+        _rb = GetComponent<Rigidbody>();
         _mainCamera = Camera.main;
-        _playerData = gameObject.GetComponent<PlayerData>();
+        _playerData = GetComponent<PlayerData>();
         
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
 
-        headBone = GameObject.Find("Root/Hips/Spine/Spine1/Neck/Head").transform;
-        _heldItemSlot = headBone.Find("HeldItemSlot");
+        headBone = transform.Find("Root/Hips/Spine/Spine1/Neck/Head");
+        heldItemSlot = headBone.Find("HeldItemSlot");
+        
+        //Debug
+        text = transform.GetChild(0).GetComponent<TextMeshPro>();
+        // text.text = photonView.ViewID.ToString();
     }
 
     private void Update()
@@ -58,23 +64,26 @@ public class PlayerController : MonoBehaviourPun
         {
             if (Input.GetKeyDown(i.ToString())) // 数字キーiが押されていたら
             {
+                Debug.Log(_playerData.StoredItems);
+                Debug.Log(_playerData.StoredItems[i - 1]);
                 ref GameObject storedItem = ref _playerData.StoredItems[i - 1]; // インベントリに格納中の方の選択された番号のアイテム
                 
-                if (_heldItemSlot.childCount > 0) // もし手になにか持っているなら
+                if (heldItemSlot.childCount > 0) // もし手になにか持っているなら
                 {
-                    GameObject heldItem = _heldItemSlot.GetChild(0).gameObject; // 手に持ってたアイテム
+                    GameObject heldItem = heldItemSlot.GetChild(0).gameObject; // 手に持ってたアイテム
                     if (heldItem.name == storedItem.name) continue; // もし押されたキーと同じアイテムをすでに持っていたら何もせずにスキップ
                     
                     Debug.Log("newItemSelected");
                     
-                    if (_heldItemSlot.childCount > 0) // なにかアイテムを持っていたら今持っているアイテムの状態を保存する (持っているアイテムを削除するのは各クライアント側で行う)
+                    if (heldItemSlot.childCount > 0) // なにかアイテムを持っていたら今持っているアイテムの状態を保存する (持っているアイテムを削除するのは各クライアント側で行う)
                     {
                         storedItem = heldItem;
                     }
                 }
                 
                 // アイテムを各クライアントで呼び出す
-                photonView.RPC(nameof(SetHeldItem), RpcTarget.All, storedItem);
+                // photonView.RPC(nameof(SetHeldItem), RpcTarget.All, i-1);
+                SetHeldItem(0);
             }
         }
         
@@ -127,15 +136,16 @@ public class PlayerController : MonoBehaviourPun
         }
     }
 
-    [PunRPC]
-    private void SetHeldItem(GameObject item)
+    // [PunRPC]
+    private void SetHeldItem(int itemNum)
     {
-        if (_heldItemSlot.childCount > 0) // もしすでに手になにか持っていたら
+        if (heldItemSlot.childCount > 0) // もしすでに手になにか持っていたら
         {
-            Destroy(_heldItemSlot.GetChild(0).gameObject); // 抹消
+            Destroy(heldItemSlot.GetChild(0).gameObject); // 抹消
         } 
-        GameObject newHeldItem = Instantiate(item, new Vector3(0f, 0f, 0f), Quaternion.identity); // 指定されたアイテムを呼び出す
-        newHeldItem.transform.SetParent(_heldItemSlot, false); // 手持ちスロットに呼び出したアイテムを配置する
+        // GameObject newHeldItem = Instantiate(_playerData.StoredItems[itemNum], new Vector3(0f, 0f, 0f), Quaternion.identity); // 指定されたアイテムを呼び出す
+        GameObject newHeldItem = PhotonNetwork.Instantiate("Weapons/assault1", new Vector3(0f, 0f, 0f), Quaternion.identity, 0, new object[1]{photonView.ViewID}); // 指定されたアイテムを呼び出す
+        // newHeldItem.transform.SetParent(_heldItemSlot, false); // 手持ちスロットに呼び出したアイテムを配置する
         _heldItemScript = newHeldItem.GetComponent<SmallArm>(); 
     }
     

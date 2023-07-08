@@ -1,7 +1,7 @@
 using Photon.Pun;
 using UnityEngine;
 
-public class SmallArm : MonoBehaviourPun
+public class SmallArm : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
 {
     public float fireRate;
     public float damage;
@@ -18,10 +18,11 @@ public class SmallArm : MonoBehaviourPun
     private Rigidbody _rb;
     private Transform _owner;
     private Transform _muzzle;
-
-
-    private void Start()
+    
+    public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
+        transform.SetParent(PhotonView.Find((int)info.photonView.InstantiationData[0]).transform.GetComponent<PlayerController>().heldItemSlot, false);
+        PhotonView.Find((int)info.photonView.InstantiationData[0]).GetComponent<PlayerController>().text.text = "a";
         _owner = transform.root;
         _muzzle = transform.Find("Muzzle");
     }
@@ -35,11 +36,12 @@ public class SmallArm : MonoBehaviourPun
         {   // インターバルがなくなったので撃つ
             _interval = fireRate; // インターバル設定
             
+            GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
+            bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
+            Destroy(bullet, 5f);
+            
             if (photonView.IsMine)
             { // 所有者なら 
-                GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
-                bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
-                Destroy(bullet, 5f);
             }
             else
             { // 他のクライアントなら
