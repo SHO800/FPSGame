@@ -28,13 +28,23 @@ public class SmallArm : MonoBehaviourPun
     
     private void Update()
     {
+        // 小銃弾をすべて同期することは難しいので、所有者のみが残弾管理等を行い他のクライアントは演出的に発砲のみを行う
+        
         if (_interval > 0) _interval -= Time.deltaTime; // インターバルを減らす
         if (_isShooting && _interval <= 0) // 発射中かつインターバルがなければ
-        {
+        {   // インターバルがなくなったので撃つ
             _interval = fireRate; // インターバル設定
-            GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
-            bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
-            Destroy(bullet, 5f);
+            
+            if (photonView.IsMine)
+            { // 所有者なら 
+                GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
+                bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
+                Destroy(bullet, 5f);
+            }
+            else
+            { // 他のクライアントなら
+                
+            }
         }
         
     }

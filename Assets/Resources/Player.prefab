@@ -2706,11 +2706,11 @@ GameObject:
   - component: {fileID: 5709946408026649513}
   - component: {fileID: 5709946408017281520}
   - component: {fileID: 5709946408017281526}
+  - component: {fileID: 7329580785505298373}
   - component: {fileID: 5709946408017281524}
   - component: {fileID: 678310547870292088}
   - component: {fileID: 8144835717001272864}
   - component: {fileID: 7043883003735687830}
-  - component: {fileID: 7329580785505298373}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -2790,6 +2790,20 @@ CapsuleCollider:
   m_Height: 1.85
   m_Direction: 1
   m_Center: {x: 0, y: 0.925, z: 0}
+--- !u!114 &7329580785505298373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5709946408017281523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d775ea559eba504097527ea156d3792, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  debugLoadOuts:
+  - {fileID: 911385219652104893, guid: 961d4411fc931a7489e92471e43a9026, type: 3}
 --- !u!114 &5709946408017281524
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2866,18 +2880,6 @@ MonoBehaviour:
   m_SynchronizeAngularVelocity: 1
   m_TeleportEnabled: 1
   m_TeleportIfDistanceGreaterThan: 3
---- !u!114 &7329580785505298373
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5709946408017281523}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d775ea559eba504097527ea156d3792, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &5709946408017281525
 GameObject:
   m_ObjectHideFlags: 0
@@ -3084,7 +3086,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7312225813679536717}
   m_Layer: 7
-  m_Name: HandSlot
+  m_Name: HeldItemSlot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -7,13 +7,6 @@ using UnityEngine;
 public class NormalBullet : MonoBehaviour
 {
     public float damage;
-    
-    // private Rigidbody _rb;
-    
-    private void Start()
-    {
-        // _rb = GetComponent<Rigidbody>();
-    }
 
     private void Update()
     {

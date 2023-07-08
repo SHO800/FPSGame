@@ -1,23 +1,25 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Photon.Pun;
 using UnityEngine;
 
 public class PlayerData : MonoBehaviourPunCallbacks
 {
-    public GameObject[] ItemSlot {  get; set; }
 
-    [PunRPC]
-    public void OpenFire()
-    {
-        // _owner = owner; // 銃を使った人
-        // IsShooting = true;
-    }
+    [SerializeField] public GameObject[] debugLoadOuts;
+    
+    public GameObject[] LoadOuts { get; set; }
+    public GameObject[] StoredItems { get; set; }
 
-    [PunRPC]
-    public void CloseFire()
+    private void Start()
     {
-        // IsShooting = false;
+        // デバッグ用
+        LoadOuts = new GameObject[debugLoadOuts.Length];
+        Array.Copy(debugLoadOuts, LoadOuts, debugLoadOuts.Length);
+        
+        StoredItems = new GameObject[LoadOuts.Length];
+        Array.Copy(LoadOuts, StoredItems, LoadOuts.Length);
     }
 }
