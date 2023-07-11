@@ -1,7 +1,7 @@
 using Photon.Pun;
 using UnityEngine;
 
-public class SmallArm : MonoBehaviourPun
+public class SmallArm : MonoBehaviourPun, IPunInstantiateMagicCallback
 {
     public float fireRate;
     public float damage;
@@ -25,6 +25,12 @@ public class SmallArm : MonoBehaviourPun
         _owner = transform.root;
         _muzzle = transform.Find("Muzzle");
     }
+
+    public void OnPhotonInstantiate(PhotonMessageInfo info)
+    {
+        transform.SetParent(PhotonView.Find((int)info.photonView.InstantiationData[0]).GetComponent<PlayerController>().heldItemSlot, false);
+        if (transform.parent.GetChild(0) != transform) Destroy(transform.parent.GetChild(0));
+    } 
     
     private void Update()
     {
@@ -35,11 +41,12 @@ public class SmallArm : MonoBehaviourPun
         {   // インターバルがなくなったので撃つ
             _interval = fireRate; // インターバル設定
             
+            GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
+            bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
+            Destroy(bullet, 5f);
+            
             if (photonView.IsMine)
             { // 所有者なら 
-                GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
-                bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
-                Destroy(bullet, 5f);
             }
             else
             { // 他のクライアントなら
@@ -51,14 +58,12 @@ public class SmallArm : MonoBehaviourPun
     
     public void OpenFire(bool status)
     {
-        Debug.Log($"OpenFire({status})");
         photonView.RPC(nameof(OpenFireRpc), RpcTarget.All, status);
     }
 
     [PunRPC]
     private void OpenFireRpc(bool status)
     {
-        Debug.Log($"RPC({status})");
         _isShooting = status;
     }
 }

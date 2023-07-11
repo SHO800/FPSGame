@@ -2823,6 +2823,7 @@ MonoBehaviour:
   mouseSensibilityVertical: 0.5
   gun1: Weapons/assault1
   headBone: {fileID: 0}
+  heldItemSlot: {fileID: 0}
   isOpenFire: 0
 --- !u!114 &678310547870292088
 MonoBehaviour:
