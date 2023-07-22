@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Shooting : MonoBehaviour {
@@ -8,7 +6,7 @@ public class Shooting : MonoBehaviour {
     public float shotSpeed;
     public int shotCount = 30;
     public float shotInterval = 1f; // 変更
-    private float _interval = 0; // 変更
+    private float _interval; // 変更
 
     void Update()
     {

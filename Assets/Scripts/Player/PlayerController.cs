@@ -16,7 +16,7 @@ public class PlayerController : MonoBehaviourPun
     public Transform headBone;
     public Transform heldItemSlot;
 
-    [HideInInspector] public bool isOpenFire = false;
+    [HideInInspector] public bool isOpenFire;
 
     private Rigidbody _rb;
     private Camera _mainCamera;

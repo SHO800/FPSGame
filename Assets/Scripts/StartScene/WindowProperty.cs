@@ -1,91 +1,82 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class WindowProperty : MonoBehaviour
 {
-    public float height;
-    public float width;
-    public float speed = 1400f;
-
-    private RectTransform _rectTransform;
-    private float _margin;
     private Vector3 _canvasSize;
     private Vector3 _selfSize;
     private Vector3 _targetPosition;
     private Vector3 _normalPosition;
     private Vector3 _rightHidePosition;
     private Vector3 _leftHidePosition;
+    private Vector3 _beforeMovePosition;
     private bool _isActive;
-    
-    public void Start()
+    private bool _isMoveObject;
+    private WindowManager _windowManager;
+
+
+    public void Initialize(bool isFirst = false)
     {
-        _rectTransform = GetComponent<RectTransform>();
-        
+        _beforeMovePosition = transform.localPosition;
         _targetPosition = transform.localPosition;
+        _windowManager = WindowManager.windowManager;
         
-        _canvasSize = transform.parent.GetComponent<RectTransform>().sizeDelta;
+        
+        _canvasSize = transform.parent.parent.GetComponent<RectTransform>().sizeDelta;
         _selfSize = transform.GetComponent<RectTransform>().sizeDelta;
-        _margin = _canvasSize.x / 10f;
 
         _normalPosition.x = transform.localPosition.x;
         _rightHidePosition.x = _normalPosition.x + (_canvasSize.x / 2 + _selfSize.x / 2);
         _leftHidePosition.x = _normalPosition.x - (_canvasSize.x / 2 + _selfSize.x / 2);
-    }
 
-    public void Show(bool isBack = false)
-    {
-        _isActive = true;
-        gameObject.SetActive(true);
-
-        if (isBack)
+        if (isFirst)
         {
-            transform.localPosition = _leftHidePosition;
+            _isActive = true;
+            gameObject.SetActive(true);
         }
         else
         {
             transform.localPosition = _rightHidePosition;
+            _targetPosition = _rightHidePosition;
         }
+    }
 
+    public void Show(bool isBack = false)
+    {
+        transform.localPosition = isBack ? _leftHidePosition : _rightHidePosition;
         _targetPosition = _normalPosition;
+        
+        _beforeMovePosition = transform.localPosition;
+
+        _isMoveObject = true;
+        gameObject.SetActive(true);
+        _isActive = true;
     }
 
     public void Hide(bool isBack = false)
     {
-        _isActive = false;
-        
         transform.localPosition = _normalPosition;
+        _targetPosition = isBack ? _rightHidePosition : _leftHidePosition;
 
-        if (isBack)
-        {
-            _targetPosition = _rightHidePosition;
-        }
-        else
-        {
-            _targetPosition = _leftHidePosition;
-        }
-
+        _isMoveObject = true;
+        _beforeMovePosition = transform.localPosition;
+        _isActive = false;
     }
     
 
     private void Update()
     {
-        var velocity = Vector3.zero;
-        var position = Vector3.zero;
-        position.x = transform.localPosition.x;
-
-        if (Vector3.Distance(position, _targetPosition) >= 0.1f)
+        if (!_isMoveObject) return;
+        transform.localPosition = Vector3.Lerp(_beforeMovePosition, _targetPosition, _windowManager.moveProgress);
+        if (!_windowManager.isMoving)
         {
-            transform.localPosition = Vector3.MoveTowards(transform.localPosition, _targetPosition, speed * Time.deltaTime);
-        }
-        else
-        {
-            var posi = transform.localPosition;
-            posi.x = _targetPosition.x;
-            transform.localPosition = posi;
+            _isMoveObject = false;
+            var targetPosition = transform.localPosition;
+            targetPosition.x = _targetPosition.x;
+            transform.localPosition = targetPosition;
             if (!_isActive) gameObject.SetActive(false);
         }
-
+        
+        
+        
     }
 }
