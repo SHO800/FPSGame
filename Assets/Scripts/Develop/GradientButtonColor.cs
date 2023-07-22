@@ -9,6 +9,12 @@ using UnityEngine.UI;
 public class GradientButtonColor : MonoBehaviour
 {
     public bool whichColorMain;
+    private Camera _camera;
+
+    private void Start()
+    {
+        _camera = Camera.main;
+    }
 
     private void Update()
     {
@@ -20,11 +26,13 @@ public class GradientButtonColor : MonoBehaviour
         
         if (whichColorMain)
         {
+            gradient.m_color2 = _camera.backgroundColor;
             centerImage.color = gradient.m_color2;
             tmp.color = gradient.m_color1;
         }
         else
         {
+            gradient.m_color1 = _camera.backgroundColor;
             centerImage.color = gradient.m_color1;
             tmp.color = gradient.m_color2;
         }
