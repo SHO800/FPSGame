@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using TMPro;
 using Photon.Pun;
 using Photon.Realtime;
@@ -12,9 +9,10 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 public class CreateRoomButton : MonoBehaviourPunCallbacks
 {
     public TextMeshProUGUI inputField;
-    public float speed = 10f;
+    public float speed = 1f;
 
     [SerializeField]private GameObject windows;
+    [SerializeField] private WindowManager windowManager;
     private TextMeshProUGUI _text;
     private Button _button;
     private Vector2 _normalPosition;
@@ -28,21 +26,24 @@ public class CreateRoomButton : MonoBehaviourPunCallbacks
     {
         _button = GetComponent<Button>();
         _text = transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>();
+        
+        _canvasSize = windows.transform.parent.GetComponent<RectTransform>().sizeDelta;
+        _normalPosition.y = windows.transform.localPosition.y; 
     }
 
     private void Update(){
         _roomName = inputField.text.Replace("\u200b", "");
 
-        if (!System.String.IsNullOrWhiteSpace(_roomName)){
+        if (!String.IsNullOrWhiteSpace(_roomName)){
             _button.interactable = true;
-            _text.color = new Color(0f, 0f, 0f, 1f);
+            _text.color = new Color(0.7215686f, 1f, 1f, 1f);
         }else{
             _button.interactable = false;
             _text.color = new Color(0f, 0f, 0f, 0.75f);
         }
         
         
-        // マジで時間なくなってきたからJoinRoomButtonを使いまわし
+        // マジで時間なくなってきたからJoinRoomButton使いまわし
         if (!_isWindowsMoving) return;
         _elapsedTime += Time.deltaTime;
         float duration = speed * _elapsedTime;
@@ -78,5 +79,8 @@ public class CreateRoomButton : MonoBehaviourPunCallbacks
     public void OnClick()
     {
         _isWindowsMoving = true;
+        windowManager.isMoving = true;
+        windowManager.elapsedTime = 0;
+        windowManager.ChangeBackGroundHsvV(false);
     }
 }

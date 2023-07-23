@@ -2839,9 +2839,7 @@ MonoBehaviour:
   jump: 0.4
   mouseSensibilityHorizontal: 1
   mouseSensibilityVertical: 0.5
-  gun1: Weapons/assault1
-  headBone: {fileID: 0}
-  heldItemSlot: {fileID: 0}
+  gun1: Item/assault1
   isOpenFire: 0
   text: {fileID: 0}
 --- !u!114 &678310547870292088

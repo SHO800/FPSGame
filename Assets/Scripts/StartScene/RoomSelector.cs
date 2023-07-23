@@ -25,8 +25,15 @@ public class RoomSelector : MonoBehaviourPunCallbacks
     private float _nearPosition;
     private float _elapsedTime;
     private float _beforePosition;
-    
-    
+
+
+    private void Start()
+    {
+        cashRoomList.Columns.Add("RoomName");
+        cashRoomList.Columns.Add("DisplayRoomName");
+        cashRoomList.Columns.Add("NumPeople");
+    }
+
     private void Update()
     {
         _elapsedTime += Time.deltaTime; // 移動の経過時間を加算していく
@@ -58,6 +65,7 @@ public class RoomSelector : MonoBehaviourPunCallbacks
         }else{
             SelectedButtonNum = -1;
         }
+        Debug.Log(SelectedButtonNum);
     }
     
     
@@ -96,13 +104,13 @@ public class RoomSelector : MonoBehaviourPunCallbacks
             //ボタンを生成してcanvasの子にする
             GameObject button = Instantiate(listButtonPrefab, transform.position, Quaternion.identity);
             button.transform.SetParent(transform, false);
-            button.GetComponent<Toggle>().group = GetComponent<ToggleGroup>();
+            button.transform.GetChild(0).GetComponent<Toggle>().group = GetComponent<ToggleGroup>();
 
             //ボタンの表示内容を設定
             //このfor文の1回目はルームの表示名、2回目は参加人数
             //なおデータテーブルの列は1列目から ルーム名 ルームの表示名 ルームの人数/最大人数 の3つ 
             for (int j = 0; j < 2; j++){
-                var buttonsTMP = button.transform.GetChild(j).GetComponent<TextMeshProUGUI>();
+                var buttonsTMP = button.transform.GetChild(0).GetChild(j).GetComponent<TextMeshProUGUI>();
                 buttonsTMP.text = cashRoomList.Rows[i][j+1].ToString();
             }
         }

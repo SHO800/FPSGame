@@ -1,21 +1,16 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Photon.Pun;
-using Photon.Realtime;
 using TMPro;
-using UnityEngine.Serialization;
 
 public class JoinRoomButton : MonoBehaviourPunCallbacks
 {
     public RoomSelector roomSelector;
-    public float speed = 10f;
+    public float speed = 1f;
 
     [SerializeField]private GameObject windows;
+    [SerializeField] private WindowManager windowManager;
     private TextMeshProUGUI _text;
     private Button _button;
     private Vector2 _normalPosition;
@@ -29,15 +24,15 @@ public class JoinRoomButton : MonoBehaviourPunCallbacks
         _text = transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>();
         _button = GetComponent<Button>();
         
-        _canvasSize = transform.parent.parent.GetComponent<RectTransform>().sizeDelta;
-        _normalPosition.x = transform.localPosition.x; 
+        _canvasSize = windows.transform.parent.GetComponent<RectTransform>().sizeDelta;
+        _normalPosition.y = windows.transform.localPosition.y; 
     }
 
     private void Update(){
         
         if (roomSelector.SelectedButtonNum > -1){
             _button.interactable = true;
-            _text.color = new Color(0f, 0f, 0f, 1f);
+            _text.color = new Color(0.7215686f, 1f, 1f, 1f);
         }else{
             _button.interactable = false;
             _text.color = new Color(0f, 0f, 0f, 0.75f);
@@ -61,6 +56,9 @@ public class JoinRoomButton : MonoBehaviourPunCallbacks
     public void OnClick()
     {
         _isWindowsMoving = true;
+        windowManager.isMoving = true;
+        windowManager.elapsedTime = 0;
+        windowManager.ChangeBackGroundHsvV(false);
     }
     
     private void RoomJoin(){

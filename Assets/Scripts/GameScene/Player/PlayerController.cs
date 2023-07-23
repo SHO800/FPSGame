@@ -1,3 +1,4 @@
+using System;
 using Photon.Pun;
 using TMPro;
 using UnityEngine;
@@ -12,9 +13,9 @@ public class PlayerController : MonoBehaviourPun
     public float jump = 1f;
     public float mouseSensibilityHorizontal = 1f;
     public float mouseSensibilityVertical = 0.5f;
-    public string gun1 = "Weapons/assault1";
-    public Transform headBone;
-    public Transform heldItemSlot;
+    public string gun1 = "Item/assault1";
+    [NonSerialized]public Transform HeadBone;
+    [NonSerialized]public Transform HeldItemSlot;
 
     [HideInInspector] public bool isOpenFire;
 
@@ -39,8 +40,8 @@ public class PlayerController : MonoBehaviourPun
         _rb = GetComponent<Rigidbody>();
         _mainCamera = Camera.main;
         _playerData = GetComponent<PlayerData>();
-        headBone = transform.Find("Root/Hips/Spine/Spine1/Neck/Head");
-        heldItemSlot = headBone.Find("HeldItemSlot");
+        HeadBone = transform.Find("Root/Hips/Spine/Spine1/Neck/Head");
+        HeldItemSlot = HeadBone.Find("HeldItemSlot");
         
         // マウスカーソルを囚える
         Cursor.visible = false;
@@ -69,14 +70,14 @@ public class PlayerController : MonoBehaviourPun
                 Debug.Log(_playerData.StoredItems[i - 1]);
                 ref GameObject storedItem = ref _playerData.StoredItems[i - 1]; // インベントリに格納中の方の選択された番号のアイテム
                 
-                if (heldItemSlot.childCount > 0) // もし手になにか持っているなら
+                if (HeldItemSlot.childCount > 0) // もし手になにか持っているなら
                 {
-                    GameObject heldItem = heldItemSlot.GetChild(0).gameObject; // 手に持ってたアイテム
+                    GameObject heldItem = HeldItemSlot.GetChild(0).gameObject; // 手に持ってたアイテム
                     if (heldItem.name == storedItem.name) continue; // もし押されたキーと同じアイテムをすでに持っていたら何もせずにスキップ
                     
                     Debug.Log("newItemSelected");
                     
-                    if (heldItemSlot.childCount > 0) // なにかアイテムを持っていたら今持っているアイテムの状態を保存する (持っているアイテムを削除するのは各クライアント側で行う)
+                    if (HeldItemSlot.childCount > 0) // なにかアイテムを持っていたら今持っているアイテムの状態を保存する (持っているアイテムを削除するのは各クライアント側で行う)
                     {
                         storedItem = heldItem;
                     }
@@ -127,9 +128,9 @@ public class PlayerController : MonoBehaviourPun
                 0,
                 Input.GetAxis("Mouse X") * mouseSensibilityHorizontal
             ), Space.World);
-        if (Mathf.Abs(headBone.eulerAngles.x + Input.GetAxis("Mouse Y") * -mouseSensibilityVertical - 180f) > 95f) // 上下85°までのみ回転可
+        if (Mathf.Abs(HeadBone.eulerAngles.x + Input.GetAxis("Mouse Y") * -mouseSensibilityVertical - 180f) > 95f) // 上下85°までのみ回転可
         {
-            headBone.Rotate( // 頭を上下
+            HeadBone.Rotate( // 頭を上下
                 new Vector2(
                     Input.GetAxis("Mouse Y") * -mouseSensibilityVertical,
                     0
@@ -140,12 +141,12 @@ public class PlayerController : MonoBehaviourPun
     // [PunRPC]
     private void SetHeldItem(int itemNum)
     {
-        if (heldItemSlot.childCount > 0) // もしすでに手になにか持っていたら
+        if (HeldItemSlot.childCount > 0) // もしすでに手になにか持っていたら
         {
-            Destroy(heldItemSlot.GetChild(0).gameObject); // 抹消
+            Destroy(HeldItemSlot.GetChild(0).gameObject); // 抹消
         } 
         // GameObject newHeldItem = Instantiate(_playerData.StoredItems[itemNum], new Vector3(0f, 0f, 0f), Quaternion.identity); // 指定されたアイテムを呼び出す
-        GameObject newHeldItem = PhotonNetwork.Instantiate("Weapons/assault1", new Vector3(0f, 0f, 0f), Quaternion.identity, 0, new object[1]{photonView.ViewID}); // 指定されたアイテムを呼び出す
+        GameObject newHeldItem = PhotonNetwork.Instantiate(gun1, new Vector3(0f, 0f, 0f), Quaternion.identity, 0, new object[1]{photonView.ViewID}); // 指定されたアイテムを呼び出す
         // newHeldItem.transform.SetParent(_heldItemSlot, false); // 手持ちスロットに呼び出したアイテムを配置する
         _heldItemScript = newHeldItem.GetComponent<SmallArm>(); 
     }

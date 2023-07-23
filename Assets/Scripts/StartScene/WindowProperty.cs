@@ -9,7 +9,7 @@ public class WindowProperty : MonoBehaviour
     private Vector3 _rightHidePosition;
     private Vector3 _leftHidePosition;
     private Vector3 _beforeMovePosition;
-    private bool _isActive;
+    // private bool _isActive;
     private bool _isMoveObject;
     private WindowManager _windowManager;
 
@@ -33,8 +33,8 @@ public class WindowProperty : MonoBehaviour
         // 最初のウィンドウは表示しておく
         if (isFirst)
         {
-            _isActive = true;
-            gameObject.SetActive(true);
+            // _isActive = true;
+            // gameObject.SetActive(true);
         }
         else
         {
@@ -52,8 +52,8 @@ public class WindowProperty : MonoBehaviour
         _beforeMovePosition = transform.localPosition; // 移動開始地点
 
         _isMoveObject = true; // 移動中フラグを立てとく
-        gameObject.SetActive(true); // 表示
-        _isActive = true; // 表示フラグ立てとく
+        // gameObject.SetActive(true); // 表示
+        // _isActive = true; // 表示フラグ立てとく
     }
 
     public void Hide(bool isBack = false)
@@ -64,7 +64,7 @@ public class WindowProperty : MonoBehaviour
         //フラグ等々
         _isMoveObject = true; 
         _beforeMovePosition = transform.localPosition;
-        _isActive = false;
+        // _isActive = false;
     }
     
 
@@ -78,7 +78,7 @@ public class WindowProperty : MonoBehaviour
             var targetPosition = transform.localPosition;
             targetPosition.x = _targetPosition.x;
             transform.localPosition = targetPosition;
-            if (!_isActive) gameObject.SetActive(false);
+            // if (!_isActive) gameObject.SetActive(false);
         }
         
         
