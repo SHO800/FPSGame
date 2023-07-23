@@ -23,7 +23,8 @@ public class WindowManager : MonoBehaviour
 
     private void Start()
     {
-        _camera = Camera.main;
+        _camera = Camera.main; //キャッシュ
+        // ウィンドウの初期化メソッド呼び出し
         for (int i = 0; i < windows.Length; i++)
         {
             windows[i].GetComponent<WindowProperty>().Initialize(i == 0);
@@ -32,17 +33,18 @@ public class WindowManager : MonoBehaviour
 
     private void Update()
     {
-        if (!isMoving) return;
+        if (!isMoving) return; //移動中フラグが立っていなければスキップ
         
-        elapsedTime += Time.deltaTime;
-        float duration = elapsedTime / moveTime;
-        moveProgress = Mathf.SmoothStep(0, 1, duration);
+        elapsedTime += Time.deltaTime; //移動時間加算
+        float duration = elapsedTime / moveTime; // 今どんだけ移動が進んだかの割合
+        moveProgress = Mathf.SmoothStep(0, 1, duration); // 各ウィンドウが参照するための移動進捗、 0から1の間をいい感じに補完してくれる
 
         // 背景の明るさを変更
         if (_isChangingBackGroundHsv)
-            _camera.backgroundColor = Color.HSVToRGB(0, 0, Mathf.SmoothStep(_bBackGroundHsvV, _aBackGroundHsvV, duration));
+            _camera.backgroundColor = Color.HSVToRGB(0, 0, Mathf.SmoothStep(_bBackGroundHsvV, _aBackGroundHsvV, duration)); // moveProgressと同じように背景の明るさを変更
 
-        if (!(duration >= 1)) return;
+        if (duration <= 1) return; // もしまだ移動が完了してない(移動が進んだ割合が1を超えていない)ならスキップ
+        //移動が完了したら各フラグや変数を片付ける
         moveProgress = 0;
         isMoving = false;
         elapsedTime = 0;

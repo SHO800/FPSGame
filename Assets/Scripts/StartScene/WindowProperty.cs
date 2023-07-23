@@ -16,18 +16,21 @@ public class WindowProperty : MonoBehaviour
 
     public void Initialize(bool isFirst = false)
     {
+        // 初期非アクティブでStartが使えないのでWindowManagerから呼び出してもらう
+        
+        // キャッシュ
         _beforeMovePosition = transform.localPosition;
         _targetPosition = transform.localPosition;
         _windowManager = WindowManager.windowManager;
-        
-        
+
         _canvasSize = transform.parent.parent.GetComponent<RectTransform>().sizeDelta;
         _selfSize = transform.GetComponent<RectTransform>().sizeDelta;
 
-        _normalPosition.x = transform.localPosition.x;
-        _rightHidePosition.x = _normalPosition.x + (_canvasSize.x / 2 + _selfSize.x / 2);
-        _leftHidePosition.x = _normalPosition.x - (_canvasSize.x / 2 + _selfSize.x / 2);
+        _normalPosition.x = transform.localPosition.x; // 画面真ん中の表示位置
+        _rightHidePosition.x = _normalPosition.x + (_canvasSize.x / 2 + _selfSize.x / 2); //右側待機位置 画面横幅半分 + ウィンドウ横幅半分だけ移動  
+        _leftHidePosition.x = _normalPosition.x - (_canvasSize.x / 2 + _selfSize.x / 2); // 左側
 
+        // 最初のウィンドウは表示しておく
         if (isFirst)
         {
             _isActive = true;
@@ -35,29 +38,31 @@ public class WindowProperty : MonoBehaviour
         }
         else
         {
-            transform.localPosition = _rightHidePosition;
-            _targetPosition = _rightHidePosition;
+            // 初手非表示のウィンドウは右側に寄せとく
+            transform.localPosition = _rightHidePosition; // 右側に移動
+            _targetPosition = _rightHidePosition; // 移動目標を右側にしとくことで移動しないようにする
         }
     }
 
     public void Show(bool isBack = false)
     {
-        transform.localPosition = isBack ? _leftHidePosition : _rightHidePosition;
-        _targetPosition = _normalPosition;
+        transform.localPosition = isBack ? _leftHidePosition : _rightHidePosition; // 戻るなら左にtpしてから出現、でなければ右にtp
+        _targetPosition = _normalPosition;  // 真ん中に向かう
         
-        _beforeMovePosition = transform.localPosition;
+        _beforeMovePosition = transform.localPosition; // 移動開始地点
 
-        _isMoveObject = true;
-        gameObject.SetActive(true);
-        _isActive = true;
+        _isMoveObject = true; // 移動中フラグを立てとく
+        gameObject.SetActive(true); // 表示
+        _isActive = true; // 表示フラグ立てとく
     }
 
     public void Hide(bool isBack = false)
     {
-        transform.localPosition = _normalPosition;
-        _targetPosition = isBack ? _rightHidePosition : _leftHidePosition;
+        transform.localPosition = _normalPosition; // 真ん中にtp
+        _targetPosition = isBack ? _rightHidePosition : _leftHidePosition; // どっちに向かうか設定
 
-        _isMoveObject = true;
+        //フラグ等々
+        _isMoveObject = true; 
         _beforeMovePosition = transform.localPosition;
         _isActive = false;
     }
@@ -65,9 +70,9 @@ public class WindowProperty : MonoBehaviour
 
     private void Update()
     {
-        if (!_isMoveObject) return;
-        transform.localPosition = Vector3.Lerp(_beforeMovePosition, _targetPosition, _windowManager.moveProgress);
-        if (!_windowManager.isMoving)
+        if (!_isMoveObject) return; // 移動中でないなら処理はスキップ
+        transform.localPosition = Vector3.Lerp(_beforeMovePosition, _targetPosition, _windowManager.moveProgress); // 全体の進度に合わせてtp
+        if (!_windowManager.isMoving) // 全体の移動が終わったらフラグ格納等々
         {
             _isMoveObject = false;
             var targetPosition = transform.localPosition;

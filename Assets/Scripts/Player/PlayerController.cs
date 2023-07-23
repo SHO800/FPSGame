@@ -35,16 +35,17 @@ public class PlayerController : MonoBehaviourPun
 
     private void Start()
     {
+        //キャッシュ
         _rb = GetComponent<Rigidbody>();
         _mainCamera = Camera.main;
         _playerData = GetComponent<PlayerData>();
-        
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
-
         headBone = transform.Find("Root/Hips/Spine/Spine1/Neck/Head");
         heldItemSlot = headBone.Find("HeldItemSlot");
         
+        // マウスカーソルを囚える
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+
         //Debug
         text = transform.GetChild(0).GetComponent<TextMeshPro>();
         // text.text = photonView.ViewID.ToString();
