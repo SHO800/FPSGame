@@ -46,10 +46,9 @@ public class PlayerController : MonoBehaviourPun
         // マウスカーソルを囚える
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
-
-        //Debug
-        text = transform.GetChild(0).GetComponent<TextMeshPro>();
-        // text.text = photonView.ViewID.ToString();
+        
+        text = transform.Find("PlayerName").GetComponent<TextMeshPro>();
+        text.text = photonView.name;
     }
 
     private void Update()

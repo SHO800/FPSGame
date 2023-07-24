@@ -50,6 +50,7 @@ public class JoinRoomButton : MonoBehaviourPunCallbacks
         _isWindowsMoving = false;
         _elapsedTime = 0;
         RoomJoin();
+        
 
     }
 
@@ -62,11 +63,8 @@ public class JoinRoomButton : MonoBehaviourPunCallbacks
     }
     
     private void RoomJoin(){
-        string roomName = roomSelector.cashRoomList.Rows[roomSelector.SelectedButtonNum][0].ToString();
-        PhotonNetwork.JoinRoom(roomName);
-    }
-
-    public override void OnJoinedRoom(){
+        GameManager.RoomName =  roomSelector.cashRoomList.Rows[roomSelector.SelectedButtonNum][0].ToString();
         SceneManager.LoadScene("GameScene", LoadSceneMode.Single);
     }
+    
 }

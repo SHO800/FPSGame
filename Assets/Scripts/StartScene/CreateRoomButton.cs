@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using Photon.Pun;
 using Photon.Realtime;
+using UnityEngine.SceneManagement;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class CreateRoomButton : MonoBehaviourPunCallbacks
@@ -73,7 +74,10 @@ public class CreateRoomButton : MonoBehaviourPunCallbacks
         roomOptions.CustomRoomProperties = customProperties;
         roomOptions.CustomRoomPropertiesForLobby = new[] {"RoomName"};
 
-        PhotonNetwork.CreateRoom(null, roomOptions);
+        GameManager.RoomOptions = roomOptions;
+        GameManager.RoomName = "";
+        SceneManager.LoadScene("GameScene", LoadSceneMode.Single);
+        
     }
     
     public void OnClick()

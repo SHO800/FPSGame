@@ -18,6 +18,7 @@ public class SmallArm : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
     private Rigidbody _rb;
     private Transform _owner;
     private Transform _muzzle;
+    private ParticleSystem _muzzleFlash;
     
     public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
@@ -25,6 +26,7 @@ public class SmallArm : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
         PhotonView.Find((int)info.photonView.InstantiationData[0]).GetComponent<PlayerController>().text.text = "a";
         _owner = transform.root;
         _muzzle = transform.Find("Muzzle");
+        _muzzleFlash = transform.Find("MuzzleFlashEffect").GetComponent<ParticleSystem>();
     }
     
     private void Update()
@@ -39,6 +41,7 @@ public class SmallArm : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
             GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().HeadBone.rotation); // 弾スポーン
             bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
             Destroy(bullet, 5f);
+            _muzzleFlash.Play();
             
             if (photonView.IsMine)
             { // 所有者なら 
