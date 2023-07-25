@@ -9,6 +9,8 @@ TagManager:
   - PlayerCameraRoot
   - NeckBone
   - Bullet
+  - Item
+  - Weapon
   layers:
   - Default
   - TransparentFX

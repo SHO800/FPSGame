@@ -1,10 +1,13 @@
 using System;
+using ExitGames.Client.Photon.StructWrapping;
 using Photon.Pun;
+using Shapes2D;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Cursor = UnityEngine.Cursor;
 
-public class PlayerController : MonoBehaviourPun
+public class PlayerController : MonoBehaviourPun, IPunObservable
 {
     public static Transform SelfPlayer;
     
@@ -14,9 +17,13 @@ public class PlayerController : MonoBehaviourPun
     public float mouseSensibilityHorizontal = 1f;
     public float mouseSensibilityVertical = 0.5f;
     public string gun1 = "Item/assault1";
+
+
     [NonSerialized]public Transform HeadBone;
     [NonSerialized]public Transform HeldItemSlot;
 
+    [HideInInspector]public float hp = 100f;
+    [HideInInspector] public float damageFactor = 1f;
     [HideInInspector] public bool isOpenFire;
 
     private Rigidbody _rb;
@@ -25,6 +32,9 @@ public class PlayerController : MonoBehaviourPun
     private bool _isOnGround;
     private SmallArm _heldItemScript;
     private PlayerData _playerData;
+    // private Transform _statusCanvas;
+    // private Slider _hpBar;
+    private string _nickName;
 
     public TextMeshPro text;
 
@@ -42,14 +52,21 @@ public class PlayerController : MonoBehaviourPun
         _playerData = GetComponent<PlayerData>();
         HeadBone = transform.Find("Root/Hips/Spine/Spine1/Neck/Head");
         HeldItemSlot = HeadBone.Find("HeldItemSlot");
+        // _statusCanvas = transform.Find("StatusCanvas");
+        // _hpBar = _statusCanvas.Find("HPBar").GetComponent<Slider>();
         
+
         // マウスカーソルを囚える
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         
         text = transform.Find("PlayerName").GetComponent<TextMeshPro>();
-        text.text = photonView.name;
+        
+        if (photonView.IsMine) _nickName = PhotonNetwork.NickName;
+        text.text = _nickName;
+
     }
+
 
     private void Update()
     {
@@ -58,8 +75,7 @@ public class PlayerController : MonoBehaviourPun
 
         MovePosition();
         RotateHead();
-    
-        
+
         // キーが押されたら銃を取り出す
         for (int i = 1; i <= 9; i++)
         {
@@ -88,6 +104,8 @@ public class PlayerController : MonoBehaviourPun
             }
         }
         
+        
+        if(HeldItemSlot.childCount <= 0) return;
         // 左クリックが押された/離されたときに状態更新
         if (Input.GetMouseButtonDown(0)) { _heldItemScript.OpenFire(true); }
         if (Input.GetMouseButtonUp(0)) { _heldItemScript.OpenFire(false); }
@@ -136,8 +154,7 @@ public class PlayerController : MonoBehaviourPun
                 ), Space.Self);
         }
     }
-
-    // [PunRPC]
+    
     private void SetHeldItem(int itemNum)
     {
         if (HeldItemSlot.childCount > 0) // もしすでに手になにか持っていたら
@@ -149,11 +166,48 @@ public class PlayerController : MonoBehaviourPun
         // newHeldItem.transform.SetParent(_heldItemSlot, false); // 手持ちスロットに呼び出したアイテムを配置する
         _heldItemScript = newHeldItem.GetComponent<SmallArm>(); 
     }
+
+    public void GetDamage(float damage)
+    {
+        hp -= damage * damageFactor;
+        if (hp <= 0) photonView.RPC(nameof(Dead), RpcTarget.All);
+    }
+
+    [PunRPC]
+    private void Dead()
+    {
+        text.text = "I'm dead ;;";
+    }
+
+    void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            // stream.SendNext(hp);
+            stream.SendNext(_nickName);
+        }
+        else
+        {
+            // _hpBar.value = (float)stream.ReceiveNext();
+            text.text = (string)stream.ReceiveNext();
+        }
+    }
     
     private void OnCollisionStay(Collision other)
     {
-        Debug.Log("Enter");
         if (other.gameObject.tag.Contains("Ground")) _isOnGround = true;
+        if (other.gameObject.tag.Contains("Item") && Input.GetKey(KeyCode.E))
+        {
+            photonView.RPC(nameof(PickUpItem), RpcTarget.All, other.gameObject.GetPhotonView().ViewID);
+        }
+    }
+
+    [PunRPC]
+    private void PickUpItem(int id)
+    {
+        GameObject gameObj = PhotonView.Find(id).gameObject;
+        gameObj.GetComponent<SmallArm>().OnPickUp(HeldItemSlot);
+        _heldItemScript = gameObj.GetComponent<SmallArm>(); 
     }
 
     private void OnCollisionExit(Collision other)
@@ -161,4 +215,5 @@ public class PlayerController : MonoBehaviourPun
         Debug.Log("Exit");
         if (other.gameObject.tag.Contains("Ground")) _isOnGround = false;
     }
+    
 }

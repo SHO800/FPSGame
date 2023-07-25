@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Photon.Pun;
 using UnityEngine;
 
@@ -12,25 +14,61 @@ public class SmallArm : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
 
     [HideInInspector]
     public float remainingBullets;
-    
+
+    private bool _isPickUpped;
     private float _interval;
     private bool _isShooting;
     private Rigidbody _rb;
     private Transform _owner;
     private Transform _muzzle;
     private ParticleSystem _muzzleFlash;
+    private Transform _headBone;
     
     public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
-        transform.SetParent(PhotonView.Find((int)info.photonView.InstantiationData[0]).transform.GetComponent<PlayerController>().HeldItemSlot, false);
-        PhotonView.Find((int)info.photonView.InstantiationData[0]).GetComponent<PlayerController>().text.text = "a";
+        // transform.SetParent(PhotonView.Find((int)info.photonView.InstantiationData[0]).transform.GetComponent<PlayerController>().HeldItemSlot, false);
+    }
+
+    public void Start()
+    {
+        tag = "Item";
+    }
+    
+    
+    public void OnPickUp(Transform itemSlot)
+    {
+        transform.SetParent(itemSlot, false);
+        // PhotonView.Find((int)info.photonView.InstantiationData[0]).GetComponent<PlayerController>().text.text = "a";
         _owner = transform.root;
         _muzzle = transform.Find("Muzzle");
         _muzzleFlash = transform.Find("MuzzleFlashEffect").GetComponent<ParticleSystem>();
+        _headBone = _owner.GetComponent<PlayerController>().HeadBone;
+
+        GetComponent<CapsuleCollider>().enabled = false;
+        GetComponent<Rigidbody>().isKinematic = true;
+        
+        photonView.RequestOwnership();
+        tag = "Weapon";
+        _isPickUpped = true;
+        transform.localPosition = Vector3.zero;
     }
     
     private void Update()
     {
+        if (_isPickUpped)
+        {
+            AsWeapon();
+        }
+        else
+        {
+            AsItem();
+        }
+    }
+
+    private void AsWeapon()
+    {
+        transform.rotation = _headBone.rotation;
+        transform.position = transform.parent.position;
         // 小銃弾をすべて同期することは難しいので、所有者のみが残弾管理等を行い他のクライアントは演出的に発砲のみを行う
         
         if (_interval > 0) _interval -= Time.deltaTime; // インターバルを減らす
@@ -38,7 +76,8 @@ public class SmallArm : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
         {   // インターバルがなくなったので撃つ
             _interval = fireRate; // インターバル設定
             
-            GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().HeadBone.rotation); // 弾スポーン
+            // GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().HeadBone.rotation); // 弾スポーン
+            GameObject bullet = Instantiate(bulletObject, _headBone.position + _headBone.forward, _headBone.rotation); // 弾スポーン
             bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
             Destroy(bullet, 5f);
             _muzzleFlash.Play();
@@ -51,19 +90,21 @@ public class SmallArm : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
                 
             }
         }
-        
+    }
+
+    private void AsItem()
+    {
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y + 0.25f, transform.eulerAngles.z);
     }
     
     public void OpenFire(bool status)
     {
-        Debug.Log($"OpenFire({status})");
         photonView.RPC(nameof(OpenFireRpc), RpcTarget.All, status);
     }
 
     [PunRPC]
     private void OpenFireRpc(bool status)
     {
-        Debug.Log($"RPC({status})");
         _isShooting = status;
     }
 }

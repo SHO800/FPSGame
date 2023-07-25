@@ -44,6 +44,8 @@ MonoBehaviour:
   - OpenFireRpc
   - SetHandItem
   - SetHeldItem
+  - Dead
+  - PickUpItem
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

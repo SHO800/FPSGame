@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class NormalBullet : MonoBehaviour
@@ -19,13 +15,15 @@ public class NormalBullet : MonoBehaviour
     // Triggerだと貫通することがあるのでCollisionにしてる
     private void OnCollisionEnter(Collision other)
     {
-        // Debug.Log("Enter");
+        if (other.gameObject.tag.Contains("Player"))
+        {
+            other.gameObject.GetComponent<PlayerController>().GetDamage(damage);
+        }
         Destroy(gameObject);
     }
     
     private void OnCollisionStay(Collision other)
     {
-        // Debug.Log("Stay");
         Destroy(gameObject);
     }
 
