@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     public static string RoomName;
     public static RoomOptions RoomOptions;
     public CinemachineVirtualCamera playerFollowCamera;
+    public Blind blind;
     void Start()
     {
         if (RoomName == null) return; // もしStartSceneを経ていないならスキップ
@@ -26,6 +27,7 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom(){
         SpawnSelfPlayer();
+        blind.FadeOut();
     }
 
     private void SpawnSelfPlayer()

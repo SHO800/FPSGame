@@ -59,7 +59,6 @@ public class JoinRoomButton : MonoBehaviourPunCallbacks
         _isWindowsMoving = true;
         windowManager.isMoving = true;
         windowManager.elapsedTime = 0;
-        windowManager.ChangeBackGroundHsvV(false);
     }
     
     private void RoomJoin(){

@@ -85,6 +85,5 @@ public class CreateRoomButton : MonoBehaviourPunCallbacks
         _isWindowsMoving = true;
         windowManager.isMoving = true;
         windowManager.elapsedTime = 0;
-        windowManager.ChangeBackGroundHsvV(false);
     }
 }
