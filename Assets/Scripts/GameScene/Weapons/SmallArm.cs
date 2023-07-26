@@ -40,6 +40,7 @@ public class SmallArm : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
         transform.SetParent(itemSlot, false);
         // PhotonView.Find((int)info.photonView.InstantiationData[0]).GetComponent<PlayerController>().text.text = "a";
         _owner = transform.root;
+        Debug.Log(itemSlot);
         _muzzle = transform.Find("Muzzle");
         _muzzleFlash = transform.Find("MuzzleFlashEffect").GetComponent<ParticleSystem>();
         _headBone = _owner.GetComponent<PlayerController>().headBone;

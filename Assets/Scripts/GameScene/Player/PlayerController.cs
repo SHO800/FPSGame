@@ -1,4 +1,5 @@
 using System;
+using Cinemachine;
 using Photon.Pun;
 using TMPro;
 using UnityEngine;
@@ -31,6 +32,9 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     private PlayerData _playerData;
     private bool _isOnGround;
     private string _nickName;
+    private CinemachineVirtualCamera _cineMachine;
+    private float _adsTime;
+
     // private Transform _statusCanvas;
     // private Slider _hpBar;
 
@@ -49,7 +53,9 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         _mainCamera = Camera.main;
         _playerData = GetComponent<PlayerData>();
         headBone = transform.Find("Root/Hips/Spine/Spine1/Neck/Head");
-        heldItemSlot = headBone.Find("heldItemSlot");
+        heldItemSlot = headBone.Find("HeldItemSlot");
+        _cineMachine = GameObject.Find("PlayerFollowCamera").GetComponent<CinemachineVirtualCamera>();
+        
         // _statusCanvas = transform.Find("StatusCanvas");
         // _hpBar = _statusCanvas.Find("HPBar").GetComponent<Slider>();
         
@@ -79,8 +85,8 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         {
             if (Input.GetKeyDown(i.ToString())) // 数字キーiが押されていたら
             {
-                Debug.Log(_playerData.StoredItems);
-                Debug.Log(_playerData.StoredItems[i - 1]);
+                // Debug.Log(_playerData.StoredItems);
+                // Debug.Log(_playerData.StoredItems[i - 1]);
                 ref GameObject storedItem = ref _playerData.StoredItems[i - 1]; // インベントリに格納中の方の選択された番号のアイテム
                 
                 if (heldItemSlot.childCount > 0) // もし手になにか持っているなら
@@ -88,7 +94,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
                     GameObject heldItem = heldItemSlot.GetChild(0).gameObject; // 手に持ってたアイテム
                     if (heldItem.name == storedItem.name) continue; // もし押されたキーと同じアイテムをすでに持っていたら何もせずにスキップ
                     
-                    Debug.Log("newItemSelected");
+                    // Debug.Log("newItemSelected");
                     
                     if (heldItemSlot.childCount > 0) // なにかアイテムを持っていたら今持っているアイテムの状態を保存する (持っているアイテムを削除するのは各クライアント側で行う)
                     {
@@ -107,6 +113,28 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         // 左クリックが押された/離されたときに状態更新
         if (Input.GetMouseButtonDown(0)) { _heldItemScript.OpenFire(true); }
         if (Input.GetMouseButtonUp(0)) { _heldItemScript.OpenFire(false); }
+
+        Debug.Log(heldItemSlot.localPosition);
+        if (Input.GetMouseButtonDown(1))
+        {
+            isAds = true;
+            heldItemSlot.localPosition = new Vector3(0, -0.15f, 0.5f);
+            _adsTime = Time.time;
+        }
+        
+        if (Input.GetMouseButtonUp(1))
+        {
+            isAds = false; 
+            heldItemSlot.localPosition = new Vector3(0.3f, -0.3f, 0.5f);
+            _adsTime = Time.time;
+        }
+        
+        if (Time.time - _adsTime < 0.1)
+        {
+            _cineMachine.m_Lens.FieldOfView =
+                isAds ? 40 - (Time.time - _adsTime) * 100 : 30 + (Time.time - _adsTime) * 100;
+        }
+
 
     }
 
@@ -127,7 +155,6 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         // 移動実行
         _rb.velocity = move  + new Vector3(0, _rb.velocity.y, 0);
         // 地面でスペースを押したらジャンプ
-        // Debug.Log(_isOnGround);
         if (Input.GetKey(KeyCode.Space) && _isOnGround)
         {
             _rb.AddForce(new Vector3(0, jump, 0), ForceMode.VelocityChange);
@@ -210,7 +237,6 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
 
     private void OnCollisionExit(Collision other)
     {
-        Debug.Log("Exit");
         if (other.gameObject.tag.Contains("Ground")) _isOnGround = false;
     }
     
