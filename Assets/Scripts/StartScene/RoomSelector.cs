@@ -65,7 +65,6 @@ public class RoomSelector : MonoBehaviourPunCallbacks
         }else{
             SelectedButtonNum = -1;
         }
-        Debug.Log(SelectedButtonNum);
     }
     
     

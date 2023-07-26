@@ -3190,6 +3190,9 @@ MonoBehaviour:
   damageFactor: 1
   isOpenFire: 0
   isAds: 0
+  weaponDataUI: {fileID: 0}
+  ammoTMP: {fileID: 0}
+  weaponImageTra: {fileID: 0}
   text: {fileID: 0}
 --- !u!114 &678310547870292088
 MonoBehaviour:
@@ -3570,7 +3573,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8428025015613689278}
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 0, z: 0.481}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3579,7 +3582,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 1.643}
+  m_AnchoredPosition: {x: 0, y: 1.9}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &8877878392676045561

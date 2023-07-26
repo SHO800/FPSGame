@@ -1,8 +1,10 @@
 using System;
 using Cinemachine;
+using Cysharp.Threading.Tasks;
 using Photon.Pun;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Cursor = UnityEngine.Cursor;
 
 public class PlayerController : MonoBehaviourPun, IPunObservable
@@ -14,7 +16,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     public float jump = 1f;
     public float mouseSensibilityHorizontal = 1f;
     public float mouseSensibilityVertical = 0.5f;
-    public string gun1 = "Item/assault1";
+    public string gun1 = "Item/Assault";
 
 
     [HideInInspector] public Transform headBone;
@@ -24,6 +26,9 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     [HideInInspector] public float damageFactor = 1f;
     [HideInInspector] public bool isOpenFire;
     [HideInInspector] public bool isAds;
+    [HideInInspector] public GameObject weaponDataUI;
+    [HideInInspector] public TextMeshProUGUI ammoTMP;
+    [HideInInspector] public Transform weaponImageTra;
 
     private Rigidbody _rb;
     private Camera _mainCamera;
@@ -34,6 +39,8 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     private string _nickName;
     private CinemachineVirtualCamera _cineMachine;
     private float _adsTime;
+    private TextMeshProUGUI _messageTMP;
+    
 
     // private Transform _statusCanvas;
     // private Slider _hpBar;
@@ -55,6 +62,11 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         headBone = transform.Find("Root/Hips/Spine/Spine1/Neck/Head");
         heldItemSlot = headBone.Find("HeldItemSlot");
         _cineMachine = GameObject.Find("PlayerFollowCamera").GetComponent<CinemachineVirtualCamera>();
+        weaponDataUI = GameObject.Find("WeaponData");
+        ammoTMP = weaponDataUI.transform.Find("Ammo").GetComponent<TextMeshProUGUI>();
+        _messageTMP = GameObject.Find("MessageText").GetComponent<TextMeshProUGUI>();
+        weaponImageTra = weaponDataUI.transform.Find("WeaponImage");
+        
         
         // _statusCanvas = transform.Find("StatusCanvas");
         // _hpBar = _statusCanvas.Find("HPBar").GetComponent<Slider>();
@@ -68,74 +80,66 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         
         if (photonView.IsMine) _nickName = PhotonNetwork.NickName;
         text.text = _nickName;
-
+        if (PhotonNetwork.IsMasterClient && !GameManager.IsGameStarted)
+        {
+            _messageTMP.text = "あなたはゲームマスターです。Enterを押してゲームを開始します。\n";
+        }
+        else
+        {
+            _messageTMP.text = "ゲームマスターがゲームを開始するまでお待ち下さい。\n";
+        }
+        
+        
+        
     }
-
+    
+    
 
     private void Update()
     {
-        //TODO: 各プレイヤーが発射中かどうかだけを変数で同期して各クライアントで同期しない弾丸を生成する
         if (!photonView.IsMine) return;
+        
+        if (PhotonNetwork.IsMasterClient && !GameManager.IsGameStarted && Input.GetKeyDown(KeyCode.Return))
+        {
+            photonView.RPC(nameof(Message), RpcTarget.All, "ゲームマスターがゲームを開始しました。");
+            GameManager.GameStart();
+        }
 
         MovePosition();
         RotateHead();
 
-        // キーが押されたら銃を取り出す
-        for (int i = 1; i <= 9; i++)
-        {
-            if (Input.GetKeyDown(i.ToString())) // 数字キーiが押されていたら
-            {
-                // Debug.Log(_playerData.StoredItems);
-                // Debug.Log(_playerData.StoredItems[i - 1]);
-                ref GameObject storedItem = ref _playerData.StoredItems[i - 1]; // インベントリに格納中の方の選択された番号のアイテム
-                
-                if (heldItemSlot.childCount > 0) // もし手になにか持っているなら
-                {
-                    GameObject heldItem = heldItemSlot.GetChild(0).gameObject; // 手に持ってたアイテム
-                    if (heldItem.name == storedItem.name) continue; // もし押されたキーと同じアイテムをすでに持っていたら何もせずにスキップ
-                    
-                    // Debug.Log("newItemSelected");
-                    
-                    if (heldItemSlot.childCount > 0) // なにかアイテムを持っていたら今持っているアイテムの状態を保存する (持っているアイテムを削除するのは各クライアント側で行う)
-                    {
-                        storedItem = heldItem;
-                    }
-                }
-                
-                // アイテムを各クライアントで呼び出す
-                // photonView.RPC(nameof(SetHeldItem), RpcTarget.All, i-1);
-                SetHeldItem(0);
-            }
-        }
+        // 時間的に没
+        // // キーが押されたら銃を取り出す
+        // for (int i = 1; i <= 9; i++)
+        // {
+        //     if (Input.GetKeyDown(i.ToString())) // 数字キーiが押されていたら
+        //     {
+        //         // Debug.Log(_playerData.StoredItems);
+        //         // Debug.Log(_playerData.StoredItems[i - 1]);
+        //         ref GameObject storedItem = ref _playerData.StoredItems[i - 1]; // インベントリに格納中の方の選択された番号のアイテム
+        //         
+        //         if (heldItemSlot.childCount > 0) // もし手になにか持っているなら
+        //         {
+        //             GameObject heldItem = heldItemSlot.GetChild(0).gameObject; // 手に持ってたアイテム
+        //             if (heldItem.name == storedItem.name) continue; // もし押されたキーと同じアイテムをすでに持っていたら何もせずにスキップ
+        //             
+        //             // Debug.Log("newItemSelected");
+        //             
+        //             if (heldItemSlot.childCount > 0) // なにかアイテムを持っていたら今持っているアイテムの状態を保存する (持っているアイテムを削除するのは各クライアント側で行う)
+        //             {
+        //                 storedItem = heldItem;
+        //             }
+        //         }
+        //         
+        //         // アイテムを各クライアントで呼び出す
+        //         // photonView.RPC(nameof(SetHeldItem), RpcTarget.All, i-1);
+        //         SetHeldItem(0);
+        //     }
+        // }
         
         
-        if(heldItemSlot.childCount <= 0) return;
-        // 左クリックが押された/離されたときに状態更新
-        if (Input.GetMouseButtonDown(0)) { _heldItemScript.OpenFire(true); }
-        if (Input.GetMouseButtonUp(0)) { _heldItemScript.OpenFire(false); }
-
-        Debug.Log(heldItemSlot.localPosition);
-        if (Input.GetMouseButtonDown(1))
-        {
-            isAds = true;
-            heldItemSlot.localPosition = new Vector3(0, -0.15f, 0.5f);
-            _adsTime = Time.time;
-        }
-        
-        if (Input.GetMouseButtonUp(1))
-        {
-            isAds = false; 
-            heldItemSlot.localPosition = new Vector3(0.3f, -0.3f, 0.5f);
-            _adsTime = Time.time;
-        }
-        
-        if (Time.time - _adsTime < 0.1)
-        {
-            _cineMachine.m_Lens.FieldOfView =
-                isAds ? 40 - (Time.time - _adsTime) * 100 : 30 + (Time.time - _adsTime) * 100;
-        }
-
-
+        if(heldItemSlot.childCount > 0) WeaponControl();
+        else if (weaponDataUI.activeSelf) weaponDataUI.transform.localScale = Vector3.zero;
     }
 
     private void MovePosition() // 移動
@@ -179,6 +183,46 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
                 ), Space.Self);
         }
     }
+
+    [PunRPC]
+    private void Message(string message)
+    {
+        _messageTMP.text += message + "\n";
+    }
+    
+    [PunRPC]
+    private void PickUpItem(int id)
+    {
+        // if
+        GameObject gameObj = PhotonView.Find(id).gameObject;
+        switch (gameObj.GetComponent<Item>().itemType)
+        {
+            case Item.ItemType.Weapon:
+                if (heldItemSlot.childCount > 0 && gameObj.name == heldItemSlot.GetChild(0)?.name) // もし同じ武器を拾ったら
+                {
+                    SmallArm weaponScript = heldItemSlot.GetChild(0).GetComponent<SmallArm>();
+                    weaponScript.ammo += weaponScript.capacity; // 1マガジン分弾薬増やす
+                    Destroy(gameObj);
+                }
+                else // もし同じ武器ではなかったら
+                {
+                    if (heldItemSlot.childCount > 0) Destroy(heldItemSlot.GetChild(0)); // 他の武器を持ってたら消す
+                    _heldItemScript = gameObj.GetComponent<SmallArm>();
+                    _heldItemScript.OnPickUp(heldItemSlot);
+                    weaponDataUI.transform.localScale = Vector3.one;
+                    Debug.Log($"find:{weaponDataUI.transform.Find("WeaponImage")}, image:{weaponDataUI.transform.Find("WeaponImage").GetComponent<RawImage>().texture}, ");
+                    Debug.Log($"tex:{{(Texture)Resources.Load($\"Item/Images/{{gameObj.name.Replace(\"(Clone)\", \"\")}}");
+                    Debug.Log("Item/Images/" + gameObj.name.Replace("(Clone)", ""));
+                    weaponImageTra.GetComponent<RawImage>().texture = (Texture)Resources.Load($"Item/Images/{gameObj.name.Replace("(Clone)", "")}");
+                }
+                
+                break;
+            case Item.ItemType.Medic:
+                break;
+        }
+        
+        
+    }
     
     private void SetHeldItem(int itemNum)
     {
@@ -191,6 +235,44 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         // newHeldItem.transform.SetParent(_heldItemSlot, false); // 手持ちスロットに呼び出したアイテムを配置する
         _heldItemScript = newHeldItem.GetComponent<SmallArm>(); 
     }
+    
+    private void WeaponControl()
+    {
+        if (Input.GetKeyDown(KeyCode.R) && !_heldItemScript.isReloading)
+        {
+            _heldItemScript.Reload();
+        }
+        
+        // 左クリックが押された・離されたときに状態更新
+        if (Input.GetMouseButtonDown(0)) { _heldItemScript.OpenFire(true); }
+        if (Input.GetMouseButtonUp(0)) { _heldItemScript.OpenFire(false); }
+        
+        if (Input.GetMouseButtonDown(1))
+        {
+            isAds = true;
+            heldItemSlot.localPosition = new Vector3(0, -0.15f, 0.5f);
+            _adsTime = Time.time;
+        }
+        
+        if (Input.GetMouseButtonUp(1))
+        {
+            isAds = false; 
+            heldItemSlot.localPosition = new Vector3(0.3f, -0.3f, 0.5f);
+            _adsTime = Time.time;
+        }
+        
+        if (Time.time - _adsTime < 0.1)
+        {
+            _cineMachine.m_Lens.FieldOfView =
+                isAds ? 40 - (Time.time - _adsTime) * 100 : 30 + (Time.time - _adsTime) * 100;
+        }
+
+    }
+
+    private void UIControl()
+    {
+        
+    }
 
     public void GetDamage(float damage)
     {
@@ -201,9 +283,10 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     [PunRPC]
     private void Dead()
     {
-        text.text = "I'm dead ;;";
+        text.text = "I'm \"Dad\" ;;";
     }
 
+    
     void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)
@@ -227,13 +310,6 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         }
     }
 
-    [PunRPC]
-    private void PickUpItem(int id)
-    {
-        GameObject gameObj = PhotonView.Find(id).gameObject;
-        gameObj.GetComponent<SmallArm>().OnPickUp(heldItemSlot);
-        _heldItemScript = gameObj.GetComponent<SmallArm>(); 
-    }
 
     private void OnCollisionExit(Collision other)
     {

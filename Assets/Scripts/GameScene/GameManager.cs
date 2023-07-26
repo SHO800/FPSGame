@@ -1,19 +1,37 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using Cinemachine;
 using Photon.Pun;
-using Photon.Pun.Demo.Cockpit;
 using Photon.Realtime;
 using UnityEngine;
+using UnityEngine.Timeline;
+using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
-    public static string RoomName;
-    public static RoomOptions RoomOptions;
+    [HideInInspector]public static string RoomName;
+    [HideInInspector]public static RoomOptions RoomOptions;
+    [HideInInspector]public static bool IsGameStarted;
     public CinemachineVirtualCamera playerFollowCamera;
     public Blind blind;
-    void Start()
+    public float spawnTime;
+
+    public Transform marker1;
+    public Transform marker2;
+    public string[] spawnItems;
+    
+    
+    public static Transform SMarker1;
+    public static Transform SMarker2;
+    public static string[] SSpawnItems;
+
+    private static float _spawnTimer;
+    
+    private void Start()
     {
+        SMarker1 = marker1;
+        SMarker2 = marker2;
+        SSpawnItems = spawnItems;
+        
         if (RoomName == null) return; // もしStartSceneを経ていないならスキップ
         if (RoomOptions == null)
         {
@@ -23,6 +41,14 @@ public class GameManager : MonoBehaviourPunCallbacks
         {
             PhotonNetwork.CreateRoom(null, RoomOptions);
         }
+
+        _spawnTimer = 0;
+    }
+
+    private void Update()
+    {
+        if(!IsGameStarted) return;
+        if(Time.time - _spawnTimer >= spawnTime) SpawnItem();
     }
 
     public override void OnJoinedRoom(){
@@ -36,5 +62,27 @@ public class GameManager : MonoBehaviourPunCallbacks
         GameObject player = PhotonNetwork.Instantiate("Player", position, Quaternion.identity);
         GameObject cameraRoot = GameObject.FindWithTag("PlayerCameraRoot");
         playerFollowCamera.Follow = cameraRoot.transform;
-    } 
+    }
+
+    public static void GameStart()
+    {
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        IsGameStarted = true;
+        
+        for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++)
+        {
+            SpawnItem();
+        }
+    }
+
+    private static void SpawnItem()
+    {
+        float x = Random.Range(SMarker1.position.x, SMarker2.position.x);
+        float y = Random.Range(SMarker1.position.y, SMarker2.position.y);
+        float z = Random.Range(SMarker1.position.z, SMarker2.position.z);
+        
+        PhotonNetwork.Instantiate(SSpawnItems[Random.Range(0, SSpawnItems.Length)], new Vector3(x,y,z), Quaternion.identity);
+
+        _spawnTimer = Time.time;
+    }
 }
