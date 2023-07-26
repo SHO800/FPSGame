@@ -26,7 +26,7 @@ public class SmallArm : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
     
     public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
-        // transform.SetParent(PhotonView.Find((int)info.photonView.InstantiationData[0]).transform.GetComponent<PlayerController>().HeldItemSlot, false);
+        // transform.SetParent(PhotonView.Find((int)info.photonView.InstantiationData[0]).transform.GetComponent<PlayerController>().heldItemSlot, false);
     }
 
     public void Start()
@@ -42,7 +42,7 @@ public class SmallArm : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
         _owner = transform.root;
         _muzzle = transform.Find("Muzzle");
         _muzzleFlash = transform.Find("MuzzleFlashEffect").GetComponent<ParticleSystem>();
-        _headBone = _owner.GetComponent<PlayerController>().HeadBone;
+        _headBone = _owner.GetComponent<PlayerController>().headBone;
 
         GetComponent<CapsuleCollider>().enabled = false;
         GetComponent<Rigidbody>().isKinematic = true;
@@ -76,7 +76,7 @@ public class SmallArm : MonoBehaviourPunCallbacks, IPunInstantiateMagicCallback
         {   // インターバルがなくなったので撃つ
             _interval = fireRate; // インターバル設定
             
-            // GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().HeadBone.rotation); // 弾スポーン
+            // GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
             GameObject bullet = Instantiate(bulletObject, _headBone.position + _headBone.forward, _headBone.rotation); // 弾スポーン
             bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
             Destroy(bullet, 5f);

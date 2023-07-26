@@ -1,10 +1,7 @@
 using System;
-using ExitGames.Client.Photon.StructWrapping;
 using Photon.Pun;
-using Shapes2D;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using Cursor = UnityEngine.Cursor;
 
 public class PlayerController : MonoBehaviourPun, IPunObservable
@@ -19,22 +16,23 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     public string gun1 = "Item/assault1";
 
 
-    [NonSerialized]public Transform HeadBone;
-    [NonSerialized]public Transform HeldItemSlot;
+    [HideInInspector] public Transform headBone;
+    [HideInInspector] public Transform heldItemSlot;
 
-    [HideInInspector]public float hp = 100f;
+    [HideInInspector] public float hp = 100f;
     [HideInInspector] public float damageFactor = 1f;
     [HideInInspector] public bool isOpenFire;
+    [HideInInspector] public bool isAds;
 
     private Rigidbody _rb;
     private Camera _mainCamera;
     private Animator _anim;
-    private bool _isOnGround;
     private SmallArm _heldItemScript;
     private PlayerData _playerData;
+    private bool _isOnGround;
+    private string _nickName;
     // private Transform _statusCanvas;
     // private Slider _hpBar;
-    private string _nickName;
 
     public TextMeshPro text;
 
@@ -50,8 +48,8 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         _rb = GetComponent<Rigidbody>();
         _mainCamera = Camera.main;
         _playerData = GetComponent<PlayerData>();
-        HeadBone = transform.Find("Root/Hips/Spine/Spine1/Neck/Head");
-        HeldItemSlot = HeadBone.Find("HeldItemSlot");
+        headBone = transform.Find("Root/Hips/Spine/Spine1/Neck/Head");
+        heldItemSlot = headBone.Find("heldItemSlot");
         // _statusCanvas = transform.Find("StatusCanvas");
         // _hpBar = _statusCanvas.Find("HPBar").GetComponent<Slider>();
         
@@ -85,14 +83,14 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
                 Debug.Log(_playerData.StoredItems[i - 1]);
                 ref GameObject storedItem = ref _playerData.StoredItems[i - 1]; // インベントリに格納中の方の選択された番号のアイテム
                 
-                if (HeldItemSlot.childCount > 0) // もし手になにか持っているなら
+                if (heldItemSlot.childCount > 0) // もし手になにか持っているなら
                 {
-                    GameObject heldItem = HeldItemSlot.GetChild(0).gameObject; // 手に持ってたアイテム
+                    GameObject heldItem = heldItemSlot.GetChild(0).gameObject; // 手に持ってたアイテム
                     if (heldItem.name == storedItem.name) continue; // もし押されたキーと同じアイテムをすでに持っていたら何もせずにスキップ
                     
                     Debug.Log("newItemSelected");
                     
-                    if (HeldItemSlot.childCount > 0) // なにかアイテムを持っていたら今持っているアイテムの状態を保存する (持っているアイテムを削除するのは各クライアント側で行う)
+                    if (heldItemSlot.childCount > 0) // なにかアイテムを持っていたら今持っているアイテムの状態を保存する (持っているアイテムを削除するのは各クライアント側で行う)
                     {
                         storedItem = heldItem;
                     }
@@ -105,7 +103,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         }
         
         
-        if(HeldItemSlot.childCount <= 0) return;
+        if(heldItemSlot.childCount <= 0) return;
         // 左クリックが押された/離されたときに状態更新
         if (Input.GetMouseButtonDown(0)) { _heldItemScript.OpenFire(true); }
         if (Input.GetMouseButtonUp(0)) { _heldItemScript.OpenFire(false); }
@@ -145,9 +143,9 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
                 0,
                 Input.GetAxis("Mouse X") * mouseSensibilityHorizontal
             ), Space.World);
-        if (Mathf.Abs(HeadBone.eulerAngles.x + Input.GetAxis("Mouse Y") * -mouseSensibilityVertical - 180f) > 95f) // 上下85°までのみ回転可
+        if (Mathf.Abs(headBone.eulerAngles.x + Input.GetAxis("Mouse Y") * -mouseSensibilityVertical - 180f) > 95f) // 上下85°までのみ回転可
         {
-            HeadBone.Rotate( // 頭を上下
+            headBone.Rotate( // 頭を上下
                 new Vector2(
                     Input.GetAxis("Mouse Y") * -mouseSensibilityVertical,
                     0
@@ -157,9 +155,9 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     
     private void SetHeldItem(int itemNum)
     {
-        if (HeldItemSlot.childCount > 0) // もしすでに手になにか持っていたら
+        if (heldItemSlot.childCount > 0) // もしすでに手になにか持っていたら
         {
-            Destroy(HeldItemSlot.GetChild(0).gameObject); // 抹消
+            Destroy(heldItemSlot.GetChild(0).gameObject); // 抹消
         } 
         // GameObject newHeldItem = Instantiate(_playerData.StoredItems[itemNum], new Vector3(0f, 0f, 0f), Quaternion.identity); // 指定されたアイテムを呼び出す
         GameObject newHeldItem = PhotonNetwork.Instantiate(gun1, new Vector3(0f, 0f, 0f), Quaternion.identity, 0, new object[1]{photonView.ViewID}); // 指定されたアイテムを呼び出す
@@ -206,7 +204,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     private void PickUpItem(int id)
     {
         GameObject gameObj = PhotonView.Find(id).gameObject;
-        gameObj.GetComponent<SmallArm>().OnPickUp(HeldItemSlot);
+        gameObj.GetComponent<SmallArm>().OnPickUp(heldItemSlot);
         _heldItemScript = gameObj.GetComponent<SmallArm>(); 
     }
 

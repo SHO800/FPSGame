@@ -3184,9 +3184,12 @@ MonoBehaviour:
   mouseSensibilityHorizontal: 1
   mouseSensibilityVertical: 0.5
   gun1: Item/assault1
+  headBone: {fileID: 0}
+  heldItemSlot: {fileID: 0}
   hp: 100
   damageFactor: 1
   isOpenFire: 0
+  isAds: 0
   text: {fileID: 0}
 --- !u!114 &678310547870292088
 MonoBehaviour:
