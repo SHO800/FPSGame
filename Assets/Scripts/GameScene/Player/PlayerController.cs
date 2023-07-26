@@ -1,9 +1,8 @@
-using System;
 using Cinemachine;
-using Cysharp.Threading.Tasks;
 using Photon.Pun;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Cursor = UnityEngine.Cursor;
 
@@ -16,7 +15,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     public float jump = 1f;
     public float mouseSensibilityHorizontal = 1f;
     public float mouseSensibilityVertical = 0.5f;
-    public string gun1 = "Item/Assault";
+    
 
 
     [HideInInspector] public Transform headBone;
@@ -26,6 +25,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     [HideInInspector] public float damageFactor = 1f;
     [HideInInspector] public bool isOpenFire;
     [HideInInspector] public bool isAds;
+    [HideInInspector] public bool isDead;
     [HideInInspector] public GameObject weaponDataUI;
     [HideInInspector] public TextMeshProUGUI ammoTMP;
     [HideInInspector] public Transform weaponImageTra;
@@ -34,16 +34,12 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
     private Camera _mainCamera;
     private Animator _anim;
     private SmallArm _heldItemScript;
-    private PlayerData _playerData;
     private bool _isOnGround;
     private string _nickName;
     private CinemachineVirtualCamera _cineMachine;
     private float _adsTime;
     private TextMeshProUGUI _messageTMP;
-    
-
-    // private Transform _statusCanvas;
-    // private Slider _hpBar;
+    private Slider _hpBar;
 
     public TextMeshPro text;
 
@@ -58,7 +54,6 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         //キャッシュ
         _rb = GetComponent<Rigidbody>();
         _mainCamera = Camera.main;
-        _playerData = GetComponent<PlayerData>();
         headBone = transform.Find("Root/Hips/Spine/Spine1/Neck/Head");
         heldItemSlot = headBone.Find("HeldItemSlot");
         _cineMachine = GameObject.Find("PlayerFollowCamera").GetComponent<CinemachineVirtualCamera>();
@@ -66,11 +61,8 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         ammoTMP = weaponDataUI.transform.Find("Ammo").GetComponent<TextMeshProUGUI>();
         _messageTMP = GameObject.Find("MessageText").GetComponent<TextMeshProUGUI>();
         weaponImageTra = weaponDataUI.transform.Find("WeaponImage");
-        
-        
-        // _statusCanvas = transform.Find("StatusCanvas");
-        // _hpBar = _statusCanvas.Find("HPBar").GetComponent<Slider>();
-        
+        _hpBar = GameObject.Find("HPBar").GetComponent<Slider>();
+
 
         // マウスカーソルを囚える
         Cursor.visible = false;
@@ -140,6 +132,8 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         
         if(heldItemSlot.childCount > 0) WeaponControl();
         else if (weaponDataUI.activeSelf) weaponDataUI.transform.localScale = Vector3.zero;
+
+        _hpBar.value = hp;
     }
 
     private void MovePosition() // 移動
@@ -159,10 +153,26 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         // 移動実行
         _rb.velocity = move  + new Vector3(0, _rb.velocity.y, 0);
         // 地面でスペースを押したらジャンプ
-        if (Input.GetKey(KeyCode.Space) && _isOnGround)
+        
+        if (isDead)
         {
-            _rb.AddForce(new Vector3(0, jump, 0), ForceMode.VelocityChange);
-            // _isOnGround = false;
+            // if (Input.GetKey(KeyCode.Space))
+            // {
+            //     _rb.AddForce(new Vector3(0, jump, 0), ForceMode.VelocityChange);
+            // }
+            //
+            // if (Input.GetKey(KeyCode.LeftShift))
+            // {
+            //     _rb.AddForce(new Vector3(0, -jump, 0), ForceMode.VelocityChange);
+            // }
+        }
+        else
+        {
+            if (Input.GetKey(KeyCode.Space) && _isOnGround)
+            {
+                _rb.AddForce(new Vector3(0, jump, 0), ForceMode.VelocityChange);
+                // _isOnGround = false;
+            }
         }
     }
 
@@ -210,10 +220,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
                     _heldItemScript = gameObj.GetComponent<SmallArm>();
                     _heldItemScript.OnPickUp(heldItemSlot);
                     weaponDataUI.transform.localScale = Vector3.one;
-                    Debug.Log($"find:{weaponDataUI.transform.Find("WeaponImage")}, image:{weaponDataUI.transform.Find("WeaponImage").GetComponent<RawImage>().texture}, ");
-                    Debug.Log($"tex:{{(Texture)Resources.Load($\"Item/Images/{{gameObj.name.Replace(\"(Clone)\", \"\")}}");
-                    Debug.Log("Item/Images/" + gameObj.name.Replace("(Clone)", ""));
-                    weaponImageTra.GetComponent<RawImage>().texture = (Texture)Resources.Load($"Item/Images/{gameObj.name.Replace("(Clone)", "")}");
+                    weaponImageTra.GetComponent<RawImage>().texture = (Texture)Resources.Load($"Images/Item/{gameObj.name.Replace("(Clone)", "")}");
                 }
                 
                 break;
@@ -224,18 +231,19 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         
     }
     
-    private void SetHeldItem(int itemNum)
-    {
-        if (heldItemSlot.childCount > 0) // もしすでに手になにか持っていたら
-        {
-            Destroy(heldItemSlot.GetChild(0).gameObject); // 抹消
-        } 
-        // GameObject newHeldItem = Instantiate(_playerData.StoredItems[itemNum], new Vector3(0f, 0f, 0f), Quaternion.identity); // 指定されたアイテムを呼び出す
-        GameObject newHeldItem = PhotonNetwork.Instantiate(gun1, new Vector3(0f, 0f, 0f), Quaternion.identity, 0, new object[1]{photonView.ViewID}); // 指定されたアイテムを呼び出す
-        // newHeldItem.transform.SetParent(_heldItemSlot, false); // 手持ちスロットに呼び出したアイテムを配置する
-        _heldItemScript = newHeldItem.GetComponent<SmallArm>(); 
-    }
-    
+    //没
+    // private void SetHeldItem(int itemNum)
+    // {
+    //     if (heldItemSlot.childCount > 0) // もしすでに手になにか持っていたら
+    //     {
+    //         Destroy(heldItemSlot.GetChild(0).gameObject); // 抹消
+    //     } 
+    //     // GameObject newHeldItem = Instantiate(_playerData.StoredItems[itemNum], new Vector3(0f, 0f, 0f), Quaternion.identity); // 指定されたアイテムを呼び出す
+    //     GameObject newHeldItem = PhotonNetwork.Instantiate(gun1, new Vector3(0f, 0f, 0f), Quaternion.identity, 0, new object[1]{photonView.ViewID}); // 指定されたアイテムを呼び出す
+    //     // newHeldItem.transform.SetParent(_heldItemSlot, false); // 手持ちスロットに呼び出したアイテムを配置する
+    //     _heldItemScript = newHeldItem.GetComponent<SmallArm>(); 
+    // }
+    //
     private void WeaponControl()
     {
         if (Input.GetKeyDown(KeyCode.R) && !_heldItemScript.isReloading)
@@ -269,21 +277,44 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
 
     }
 
-    private void UIControl()
-    {
-        
-    }
-
     public void GetDamage(float damage)
     {
         hp -= damage * damageFactor;
-        if (hp <= 0) photonView.RPC(nameof(Dead), RpcTarget.All);
+        // if (hp <= 0) photonView.RPC(nameof(Dead), RpcTarget.All);
+        if (hp <= 0) Dead();
+        
     }
 
-    [PunRPC]
+    // [PunRPC]
     private void Dead()
     {
-        text.text = "I'm \"Dad\" ;;";
+        Debug.Log("Dead");
+        if(photonView.IsMine) photonView.RPC(nameof(Message), RpcTarget.All, $"{PhotonNetwork.NickName}が死亡");
+        transform.localScale = Vector3.zero;
+        _rb.useGravity = false;
+        isDead = true;
+        transform.position = new Vector3(transform.position.x, transform.position.y + 10, transform.position.z);
+        GameManager.Survivor.Remove(PhotonNetwork.NickName);
+        if (GameManager.Survivor.Count <= 1)
+        {
+            photonView.RPC(nameof(Message), RpcTarget.All, $"ゲーム終了: {GameManager.Survivor[0]}が生存しました。");
+            photonView.RPC(nameof(Message), RpcTarget.All, "5秒後にセレクター画面へ移行します...");
+            photonView.RPC(nameof(BackLobby), RpcTarget.All);
+            
+            
+        }
+        
+    }
+    
+    [PunRPC]
+    private void BackLobby()
+    {
+
+        void Back()
+        {
+            SceneManager.LoadScene("StartScene");
+        }
+        Invoke("Back", 5);
     }
 
     

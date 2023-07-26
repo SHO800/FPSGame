@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Cinemachine;
 using Photon.Pun;
 using Photon.Realtime;
@@ -25,6 +27,8 @@ public class GameManager : MonoBehaviourPunCallbacks
     public static string[] SSpawnItems;
 
     private static float _spawnTimer;
+
+    public static List<string> Survivor;
     
     private void Start()
     {
@@ -69,10 +73,17 @@ public class GameManager : MonoBehaviourPunCallbacks
         PhotonNetwork.CurrentRoom.IsOpen = false;
         IsGameStarted = true;
         
-        for (int i = 0; i < PhotonNetwork.CurrentRoom.PlayerCount; i++)
+        for (int i = 0; i < PhotonNetwork.CurrentRoom.Players.Count; i++)
         {
             SpawnItem();
+            Survivor.Add(PhotonNetwork.CurrentRoom.Players[i].NickName);
         }
+
+    }
+
+    public void EndGame()
+    {
+
     }
 
     private static void SpawnItem()

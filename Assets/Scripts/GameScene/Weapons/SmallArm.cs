@@ -28,6 +28,7 @@ public class SmallArm : Item, IPunInstantiateMagicCallback
     private Transform _headBone;
     private float _startReloadTime;
     private PlayerController _ownerController;
+    private AudioSource _audioSource;
 
     public void OnPhotonInstantiate(PhotonMessageInfo info)
     {
@@ -36,6 +37,8 @@ public class SmallArm : Item, IPunInstantiateMagicCallback
 
     public void Start()
     {
+        _audioSource = GetComponent<AudioSource>();
+        
         tag = "Item"; // 初期でアイテム状態
         ammoInMagazine = capacity; // 初期からマガジン一個分入ってる
         ammo = capacity; // 予備弾薬もついてくる
@@ -90,8 +93,9 @@ public class SmallArm : Item, IPunInstantiateMagicCallback
             bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
             Destroy(bullet, 5f);
             _muzzleFlash.Play();
+            _audioSource.Play();
             ammoInMagazine--;
-            
+
             if (photonView.IsMine)
             { // 所有者なら 
             }
