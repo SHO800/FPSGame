@@ -91,6 +91,7 @@ public class SmallArm : Item, IPunInstantiateMagicCallback
             // GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
             GameObject bullet = Instantiate(bulletObject, _headBone.position + _headBone.forward, _headBone.rotation); // 弾スポーン
             bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
+            bullet.GetComponent<NormalBullet>().damage = damage;
             Destroy(bullet, 5f);
             _muzzleFlash.Play();
             _audioSource.Play();

@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 2689821245971308441}
   - component: {fileID: 6198031588055214507}
   m_Layer: 0
-  m_Name: Assault
+  m_Name: assault
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

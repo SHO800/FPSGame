@@ -72,6 +72,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         
         if (photonView.IsMine) _nickName = PhotonNetwork.NickName;
         text.text = _nickName;
+        ResisterGameManager(_nickName);
         if (PhotonNetwork.IsMasterClient && !GameManager.IsGameStarted)
         {
             _messageTMP.text = "あなたはゲームマスターです。Enterを押してゲームを開始します。\n";
@@ -96,6 +97,7 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
             photonView.RPC(nameof(Message), RpcTarget.All, "ゲームマスターがゲームを開始しました。");
             GameManager.GameStart();
         }
+        Debug.Log(GameManager.Survivor.ToString());
 
         MovePosition();
         RotateHead();
@@ -156,15 +158,15 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         
         if (isDead)
         {
-            // if (Input.GetKey(KeyCode.Space))
-            // {
-            //     _rb.AddForce(new Vector3(0, jump, 0), ForceMode.VelocityChange);
-            // }
-            //
-            // if (Input.GetKey(KeyCode.LeftShift))
-            // {
-            //     _rb.AddForce(new Vector3(0, -jump, 0), ForceMode.VelocityChange);
-            // }
+            if (Input.GetKey(KeyCode.Space))
+            {
+                _rb.AddForce(new Vector3(0, jump, 0), ForceMode.VelocityChange);
+            }
+            
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                _rb.AddForce(new Vector3(0, -jump, 0), ForceMode.VelocityChange);
+            }
         }
         else
         {
@@ -297,11 +299,11 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         GameManager.Survivor.Remove(PhotonNetwork.NickName);
         if (GameManager.Survivor.Count <= 1)
         {
-            photonView.RPC(nameof(Message), RpcTarget.All, $"ゲーム終了: {GameManager.Survivor[0]}が生存しました。");
-            photonView.RPC(nameof(Message), RpcTarget.All, "5秒後にセレクター画面へ移行します...");
-            photonView.RPC(nameof(BackLobby), RpcTarget.All);
             
-            
+            GameEnd(GameManager.Survivor[0]);
+            // photonView.RPC(nameof(Message), RpcTarget.All, $"ゲーム終了: {GameManager.Survivor[0]}が生存しました。");
+            // photonView.RPC(nameof(Message), RpcTarget.All, "5秒後にセレクター画面へ移行します...");
+            // photonView.RPC(nameof(BackLobby), RpcTarget.All);
         }
         
     }
@@ -317,6 +319,20 @@ public class PlayerController : MonoBehaviourPun, IPunObservable
         Invoke("Back", 5);
     }
 
+    [PunRPC]
+    private void ResisterGameManager(string nickname)
+    {
+        GameManager.Survivor.Add(nickname);
+    }
+
+    [PunRPC]
+    private void GameEnd(string nickname)
+    {
+        ;
+        Message($"ゲーム終了: {GameManager.Survivor[0]}が生存しました。");
+        Message("5秒後にセレクター画面へ移行します...");
+        BackLobby();
+    }
     
     void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
