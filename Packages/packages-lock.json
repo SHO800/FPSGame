@@ -21,6 +21,13 @@
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
+    "com.masyo-lab.favorites-asset": {
+      "version": "https://github.com/MasyoLab/UnityTools-FavoritesAsset.git?path=Assets/MasyoLab/FavoritesAsset",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "bbcbd056ab8b64c4ffde5823dd8a8520c1887dd4"
+    },
     "com.unity.ai.navigation": {
       "version": "1.1.4",
       "depth": 0,
