@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -881,7 +881,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd3af0a9c84f48141b1799c7c2d3c860, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputField: {fileID: 1529036642}
 --- !u!1 &390596783
 GameObject:
   m_ObjectHideFlags: 0
@@ -1027,63 +1026,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 390596783}
   m_CullTransparentMesh: 1
---- !u!1 &403524585
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 403524586}
-  - component: {fileID: 403524588}
-  - component: {fileID: 403524587}
-  m_Layer: 0
-  m_Name: PhotonLogin
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &403524586
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 403524585}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.119115, y: -4.328852, z: -8.6109705}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &403524587
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 403524585}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e5567458c9681834390cd50e6fee85d8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &403524588
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 403524585}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e14a89b1437fefd43bbc04176cbe5138, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &426811071
 GameObject:
   m_ObjectHideFlags: 0
@@ -1251,11 +1193,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75adf3e76f246c84096ce1b5988ce8d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 10
-  buttonHeight: 100
-  maxWidthPositionY: 1
-  listButtonPrefab: {fileID: 6101107205112546724, guid: 31043e2e82d14b34e95d6cdb5abbde60,
-    type: 3}
 --- !u!114 &445519120
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2181,7 +2118,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44ae096e462a87744a0ec7718229dd0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  whichColorMain: 0
 --- !u!114 &1231366708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2715,10 +2651,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d238e2770e82554fb628b4b6baf0dc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputField: {fileID: 1568005175}
-  speed: 1
-  windows: {fileID: 1710774504}
-  windowManager: {fileID: 1681159811}
 --- !u!1 &1393012941
 GameObject:
   m_ObjectHideFlags: 0
@@ -3804,7 +3736,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44ae096e462a87744a0ec7718229dd0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  whichColorMain: 0
 --- !u!114 &1565374674
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4244,14 +4175,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15c05d30b1ea24e43a6dc676557931b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveTime: 1
-  windows:
-  - {fileID: 1419675765}
-  - {fileID: 1393012941}
-  - {fileID: 190479746}
-  isMoving: 0
-  moveProgress: 0
-  elapsedTime: 0
 --- !u!1 &1710774504
 GameObject:
   m_ObjectHideFlags: 0
@@ -4813,7 +4736,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44ae096e462a87744a0ec7718229dd0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  whichColorMain: 0
 --- !u!1 &1925480081
 GameObject:
   m_ObjectHideFlags: 0
@@ -5160,10 +5082,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88a59045423c7b7469b1b8500cf5924e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomSelector: {fileID: 445519119}
-  speed: 1
-  windows: {fileID: 1710774504}
-  windowManager: {fileID: 1681159811}
 --- !u!1 &2091944347
 GameObject:
   m_ObjectHideFlags: 0
@@ -5306,6 +5224,5 @@ SceneRoots:
   m_Roots:
   - {fileID: 662437259}
   - {fileID: 1518984895}
-  - {fileID: 403524586}
   - {fileID: 1681159810}
   - {fileID: 1420498476}
