@@ -48,7 +48,7 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         {
             SessionName = roomName,
             GameMode = GameMode.AutoHostOrClient,
-            Scene = SceneManager.GetActiveScene().buildIndex,
+            Scene = SceneManager.GetActiveScene().buildIndex + 1,
             SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
     }
@@ -58,7 +58,7 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         await _runner.StartGame(new StartGameArgs()
         {
             GameMode = GameMode.AutoHostOrClient,
-            Scene = SceneManager.GetActiveScene().buildIndex,
+            Scene = SceneManager.GetActiveScene().buildIndex + 1,
             SceneManager =  gameObject.AddComponent<NetworkSceneManagerDefault>(),
             PlayerCount = maxPlayers,
             SessionProperties = new Dictionary<string, SessionProperty>
@@ -79,11 +79,7 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         roomSelectorInstance.UpdateRoomList(sessionList);
         // Debug.Log($"SessionListUpdated: {sessionList.Count}");
     }
-
-
-    // -------------
-    // 以下仮置場
-    // -------------
+    
     public void OnConnectedToServer(NetworkRunner runner) 
     {
         Debug.Log(MethodBase.GetCurrentMethod().Name);
