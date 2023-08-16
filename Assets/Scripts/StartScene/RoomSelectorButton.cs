@@ -60,11 +60,6 @@ public class RoomSelectorButton : MonoBehaviour
     private void FixedUpdate() // RoomSelectorの処理のあとに行いたいのでFixed (Lateはうまく行かなかった)
     {
         ChangeButtonPositionZ();
-        
-        // 一応回転速度は一定にさせる
-        // _effectImageBlack.localScale = _toggle.isOn ? new Vector3(Mathf.Sin(), 1, 1) : Vector3.zero;
-        // _effectImageWhite.localScale = _toggle.isOn ? new Vector3() : Vector3.zero;
-        // if (_toggle.isOn) _effectImage.Rotate(0, 0, 1);
     }
 
     private void ChangeButtonPositionZ()
