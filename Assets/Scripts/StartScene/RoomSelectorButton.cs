@@ -76,6 +76,5 @@ public class RoomSelectorButton : MonoBehaviour
             Mathf.Abs(_maxWidthPositionY - transform.position.y) * 20f // 真ん中の一番大きく表示される位置との距離に比例して奥に表示する
         );
         _buttonCanvas.sortingOrder = -(int)Mathf.Abs(_maxWidthPositionY - transform.position.y);
-        Debug.Log(_maxWidthPositionY + ":" +transform.position.y);
     }
 }
