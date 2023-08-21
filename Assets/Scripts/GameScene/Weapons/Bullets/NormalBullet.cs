@@ -17,7 +17,7 @@ public class NormalBullet : MonoBehaviour
     {
         if (other.gameObject.tag.Contains("Player"))
         {
-            other.gameObject.GetComponent<PlayerController>().GetDamage(damage);
+            // other.gameObject.GetComponent<PlayerController>().GetDamage(damage);
         }
         Destroy(gameObject);
     }

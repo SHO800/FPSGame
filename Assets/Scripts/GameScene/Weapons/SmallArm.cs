@@ -9,16 +9,16 @@ public class SmallArm : Item
     public float reloadTime;
     public GameObject bulletObject;
     // 発射する弾のオブジェクトに着弾時の効果とか仕込もう
-
+    
     [HideInInspector] public int ammoInMagazine;
     [HideInInspector] public int ammo;
     [HideInInspector] public bool isReloading;
     
-
+    
     private bool _isPickUpped;
     private float _interval;
     private bool _isShooting;
-    private Rigidbody _rb;
+    // private Rigidbody _rb;
     private Transform _owner;
     private Transform _muzzle;
     private ParticleSystem _muzzleFlash;
@@ -26,12 +26,12 @@ public class SmallArm : Item
     private float _startReloadTime;
     private PlayerController _ownerController;
     private AudioSource _audioSource;
-
+    
     // public void OnPhotonInstantiate(PhotonMessageInfo info)
     // {
     //     // transform.SetParent(PhotonView.Find((int)info.photonView.InstantiationData[0]).transform.GetComponent<PlayerController>().heldItemSlot, false);
     // }
-
+    
     public void Start()
     {
         _audioSource = GetComponent<AudioSource>();
@@ -39,7 +39,7 @@ public class SmallArm : Item
         tag = "Item"; // 初期でアイテム状態
         ammoInMagazine = capacity; // 初期からマガジン一個分入ってる
         ammo = capacity; // 予備弾薬もついてくる
-        this.itemType = ItemType.Weapon;
+        itemType = ItemType.Weapon;
     }
     
     
@@ -52,7 +52,7 @@ public class SmallArm : Item
         _muzzleFlash = transform.Find("MuzzleFlashEffect").GetComponent<ParticleSystem>();
         _ownerController = _owner.GetComponent<PlayerController>(); 
         _headBone = _ownerController.headBone;
-
+    
         GetComponent<CapsuleCollider>().enabled = false;
         GetComponent<Rigidbody>().isKinematic = true;
         
@@ -73,7 +73,7 @@ public class SmallArm : Item
             AsItem();
         }
     }
-
+    
     private void AsWeapon()
     {
         transform.rotation = _headBone.rotation;
@@ -93,7 +93,7 @@ public class SmallArm : Item
             _muzzleFlash.Play();
             _audioSource.Play();
             ammoInMagazine--;
-
+    
             // if (photonView.IsMine)
             // { // 所有者なら 
             // }
@@ -102,7 +102,7 @@ public class SmallArm : Item
             //     
             // }
         }
-
+    
         if(ammoInMagazine == 0 && !isReloading) Reload(); //残弾がなくなったら自動的にリロード
         
         
@@ -127,24 +127,24 @@ public class SmallArm : Item
         }
         _ownerController.ammoTMP.text = $"{ammoInMagazine} / {ammo}";
     }
-
+    
     private void AsItem()
     {
         transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y + 0.25f, transform.eulerAngles.z);
     }
     
-    // public void OpenFire(bool status)
-    // {
-    //     photonView.RPC(nameof(OpenFireRpc), RpcTarget.All, status);
-    // }
-
+    public void OpenFire(bool status)
+    {
+        // photonView.RPC(nameof(OpenFireRpc), RpcTarget.All, status);
+    }
+    
     public void Reload()
     {
         if (ammo <= 0) return; // 予備弾薬がなければ無理
         isReloading = true;
         _startReloadTime = Time.time;
     }
-
+    
     // [PunRPC]
     // private void OpenFireRpc(bool status)
     // {

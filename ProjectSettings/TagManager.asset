@@ -10,6 +10,9 @@ TagManager:
   - Enemy
   - Team2
   - Ground
+  - PlayerCameraRoot
+  - Item
+  - Weapon
   layers:
   - Default
   - TransparentFX

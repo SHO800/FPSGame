@@ -195,6 +195,13 @@ MonoBehaviour:
   _interpolationDataSource: 0
   nickName: 
   roomSelectorInstance: {fileID: 0}
+  playerPrefab:
+    RawGuidValue: 6c5b005aad18ad64babc796916a11f36
+  spawnTime: 5
+  marker1: {fileID: 0}
+  marker2: {fileID: 0}
+  spawnItems:
+  - {fileID: 911385219652104893, guid: 961d4411fc931a7489e92471e43a9026, type: 3}
 --- !u!1 &1420498473
 GameObject:
   m_ObjectHideFlags: 0
@@ -5343,5 +5350,5 @@ SceneRoots:
   - {fileID: 6746156972574397128}
   - {fileID: 3241254598591467249}
   - {fileID: 1658063193354888223}
-  - {fileID: 1241884042}
   - {fileID: 1420498476}
+  - {fileID: 1241884042}

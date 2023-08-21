@@ -31,8 +31,11 @@ public class GameManager : MonoBehaviour
         SMarker1 = marker1;
         SMarker2 = marker2;
         SSpawnItems = spawnItems;
+        _spawnTimer = 0;
         
-        if (RoomName == null) return; // もしStartSceneを経ていないならスキップ
+        // pun時代の遺物だけど多分いらない
+        
+        // if (RoomName == null) return; // もしStartSceneを経ていないならスキップ
         // while (true)
         // {
         //     if (PhotonNetwork.IsConnectedAndReady) break;
@@ -48,7 +51,6 @@ public class GameManager : MonoBehaviour
         //     PhotonNetwork.CreateRoom(null, RoomOptions);
         // }
 
-        _spawnTimer = 0;
     }
 
     private void Update()
