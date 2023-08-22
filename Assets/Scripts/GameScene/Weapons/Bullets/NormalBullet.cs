@@ -1,14 +1,21 @@
+using Fusion;
 using UnityEngine;
 
-public class NormalBullet : MonoBehaviour
+public class NormalBullet : NetworkBehaviour
 {
     public float damage;
+    [Networked] private TickTimer Life { get; set; }
 
-    private void Update()
+    public void Init()
     {
-        if (transform.position.y < -100)
+        Life = TickTimer.CreateFromSeconds(Runner, 5.0f);
+    }
+    
+    public override void FixedUpdateNetwork()
+    {
+        if (transform.position.y < -100 || Life.Expired(Runner))
         {
-            Destroy(gameObject);
+            Runner.Despawn(Object);
         }
     }
 
@@ -19,12 +26,13 @@ public class NormalBullet : MonoBehaviour
         {
             // other.gameObject.GetComponent<PlayerController>().GetDamage(damage);
         }
-        Destroy(gameObject);
+        
+        if (Object is not null) Runner.Despawn(Object);
     }
     
     private void OnCollisionStay(Collision other)
     {
-        Destroy(gameObject);
+        Runner.Despawn(Object);
     }
 
     

@@ -1,3 +1,4 @@
+using Fusion;
 using UnityEngine;
 
 public class SmallArm : Item
@@ -14,9 +15,9 @@ public class SmallArm : Item
     [HideInInspector] public int ammo;
     [HideInInspector] public bool isReloading;
     
+    [Networked] private TickTimer Interval { get; set; }
     
     private bool _isPickUpped;
-    private float _interval;
     private bool _isShooting;
     // private Rigidbody _rb;
     private Transform _owner;
@@ -27,10 +28,7 @@ public class SmallArm : Item
     private PlayerController _ownerController;
     private AudioSource _audioSource;
     
-    // public void OnPhotonInstantiate(PhotonMessageInfo info)
-    // {
-    //     // transform.SetParent(PhotonView.Find((int)info.photonView.InstantiationData[0]).transform.GetComponent<PlayerController>().heldItemSlot, false);
-    // }
+    
     
     public void Start()
     {
@@ -40,6 +38,8 @@ public class SmallArm : Item
         ammoInMagazine = capacity; // 初期からマガジン一個分入ってる
         ammo = capacity; // 予備弾薬もついてくる
         itemType = ItemType.Weapon;
+        _muzzle = transform.Find("Muzzle");
+        _muzzleFlash = transform.Find("MuzzleFlashEffect").GetComponent<ParticleSystem>();
     }
     
     
@@ -48,8 +48,6 @@ public class SmallArm : Item
         transform.SetParent(itemSlot, false);
         // PhotonView.Find((int)info.photonView.InstantiationData[0]).GetComponent<PlayerController>().text.text = "a";
         _owner = transform.root;
-        _muzzle = transform.Find("Muzzle");
-        _muzzleFlash = transform.Find("MuzzleFlashEffect").GetComponent<ParticleSystem>();
         _ownerController = _owner.GetComponent<PlayerController>(); 
         _headBone = _ownerController.headBone;
     
@@ -60,47 +58,49 @@ public class SmallArm : Item
         tag = "Weapon";
         _isPickUpped = true;
         transform.localPosition = Vector3.zero;
+        transform.rotation = _headBone.rotation;
+        // transform.position = transform.parent.position;
     }
     
-    private void Update()
+    protected override void Update()
     {
         if (_isPickUpped)
         {
-            AsWeapon();
+            // AsWeapon();
         }
         else
         {
-            AsItem();
+            base.Update();
+        }
+    }
+
+    public override void FixedUpdateNetwork()
+    {
+        if (_muzzleFlash is null )return;
+
+        if (_isPickUpped)
+        {
+            AsWeapon();
         }
     }
     
     private void AsWeapon()
     {
-        transform.rotation = _headBone.rotation;
-        transform.position = transform.parent.position;
+        
         // 小銃弾をすべて同期することは難しいので、所有者のみが残弾管理等を行い他のクライアントは演出的に発砲のみを行う
         
-        if (_interval > 0) _interval -= Time.deltaTime; // インターバルを減らす
-        if (_isShooting && _interval <= 0 && ammoInMagazine > 0 && !isReloading) // 発射中かつインターバルがないかつ残弾があるかつリロード中でない
+        if (_ownerController.IsShooting && Interval.ExpiredOrNotRunning(Runner) && ammoInMagazine > 0 && !isReloading) // 発射中かつインターバルがないかつ残弾があるかつリロード中でない
         {   // インターバルがなくなったので撃つ
-            _interval = fireRate; // インターバル設定
-            
+            Interval = TickTimer.CreateFromSeconds(Runner, fireRate); // インターバル設定
             // GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
-            GameObject bullet = Instantiate(bulletObject, _headBone.position + _headBone.forward, _headBone.rotation); // 弾スポーン
+            NetworkObject bullet = Runner.Spawn(bulletObject, _headBone.position + _headBone.forward, _headBone.rotation, null,
+                (runner, o) => { o.GetComponent<NormalBullet>().Init();}); // 弾スポーン
             bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
             bullet.GetComponent<NormalBullet>().damage = damage;
-            Destroy(bullet, 5f);
+            Runner.Despawn(bullet.GetComponent<NetworkObject>());
             _muzzleFlash.Play();
             _audioSource.Play();
             ammoInMagazine--;
-    
-            // if (photonView.IsMine)
-            // { // 所有者なら 
-            // }
-            // else
-            // { // 他のクライアントなら
-            //     
-            // }
         }
     
         if(ammoInMagazine == 0 && !isReloading) Reload(); //残弾がなくなったら自動的にリロード
@@ -127,12 +127,7 @@ public class SmallArm : Item
         }
         _ownerController.ammoTMP.text = $"{ammoInMagazine} / {ammo}";
     }
-    
-    private void AsItem()
-    {
-        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y + 0.25f, transform.eulerAngles.z);
-    }
-    
+
     public void OpenFire(bool status)
     {
         // photonView.RPC(nameof(OpenFireRpc), RpcTarget.All, status);
@@ -144,10 +139,4 @@ public class SmallArm : Item
         isReloading = true;
         _startReloadTime = Time.time;
     }
-    
-    // [PunRPC]
-    // private void OpenFireRpc(bool status)
-    // {
-    //     _isShooting = status;
-    // }
 }

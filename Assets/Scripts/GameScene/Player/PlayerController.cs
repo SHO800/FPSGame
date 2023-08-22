@@ -2,6 +2,7 @@ using System;
 using Cinemachine;
 using Fusion;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -38,7 +39,8 @@ public class PlayerController : NetworkBehaviour
     private Slider _hpBar;
     private bool _isAction;
 
-    [Networked] public Vector2 Rotation { get; private set; }
+    [Networked] public bool IsShooting { get; private set; }
+    [Networked] private bool IsAds { get; set; }
 
     private void Awake()
     {
@@ -79,7 +81,8 @@ public class PlayerController : NetworkBehaviour
         if (!GetInput(out NetworkInputData data) ) return;
         _isAction = data.IsAction;
         MovePosition(data);
-        RotateHead(data);   
+        RotateHead(data);
+        WeaponControl(data);
     }
 
     private void MovePosition(NetworkInputData data)
@@ -126,14 +129,12 @@ public class PlayerController : NetworkBehaviour
     
     private void RotateHead(NetworkInputData data)
     {
+        _rb.MoveRotation(Quaternion.Euler(
+            0,
+            _rb.rotation.eulerAngles.y + data.CameraDirection.x * mouseSensibilityHorizontal,
+            0)
+        );
         
-        // transform.Rotate( // 体を左右
-        //     new Vector2(
-        //         0,
-        //         data.CameraDirection.x * mouseSensibilityHorizontal
-        // ), Space.World);
-        _rb.MoveRotation(Quaternion.Euler(0, data.CameraDirection.x * mouseSensibilityHorizontal, 0));
-        //MoveRotationはrotationに代入するのと同じだから帰ってきたらこのRotateをそのまま移したコードを修正する
         if (Mathf.Abs(headBone.eulerAngles.x + data.CameraDirection.y * -mouseSensibilityVertical - 180f) > 95f) // 上下85°までのみ回転可
         {
             headBone.Rotate( // 頭を上下
@@ -144,45 +145,21 @@ public class PlayerController : NetworkBehaviour
         }
     }
     
-    public void PickUpItem(GameObject gameObj)
+    private void WeaponControl(NetworkInputData data)
     {
-        switch (gameObj.GetComponent<Item>().itemType)
-        {
-            case Item.ItemType.Weapon:
-                if (heldItemSlot.childCount > 0 && gameObj.name == heldItemSlot.GetChild(0)?.name) // もし同じ武器を拾ったら
-                {
-                    SmallArm weaponScript = heldItemSlot.GetChild(0).GetComponent<SmallArm>();
-                    weaponScript.ammo += weaponScript.capacity; // 1マガジン分弾薬増やす
-                    Destroy(gameObj);
-                }
-                else // もし同じ武器ではなかったら
-                {
-                    if(!_isAction) return; // 拾うキーを押していなかったら何もしない
-                    
-                    if (heldItemSlot.childCount > 0) Destroy(heldItemSlot.GetChild(0)); // 他の武器を持ってたら消す
-                    _heldItemScript = gameObj.GetComponent<SmallArm>();
-                    _heldItemScript.OnPickUp(heldItemSlot);
-                    weaponDataUI.transform.localScale = Vector3.one;
-                    weaponImageTra.GetComponent<RawImage>().texture = (Texture)Resources.Load($"Images/Item/{gameObj.name.Replace("(Clone)", "")}");
-                }
-                
-                break;
-            case Item.ItemType.Medic:
-                break;
-        }
+        IsShooting = (data.MouseButtons & NetworkInputData.MOUSE_BUTTON1) != 0; 
+        IsAds = (data.MouseButtons & NetworkInputData.MOUSE_BUTTON2) != 0;
         
+        if (_heldItemScript is null) return;
         
-    }
-    private void WeaponControl()
-    {
-        if (Input.GetKeyDown(KeyCode.R) && !_heldItemScript.isReloading)
+        if (data.IsReload && !_heldItemScript.isReloading)
         {
             _heldItemScript.Reload();
         }
         
         // 左クリックが押された・離されたときに状態更新
-        if (Input.GetMouseButtonDown(0)) { _heldItemScript.OpenFire(true); }
-        if (Input.GetMouseButtonUp(0)) { _heldItemScript.OpenFire(false); }
+        // if (Input.GetMouseButtonDown(0)) { _heldItemScript.OpenFire(true); }
+        // if (Input.GetMouseButtonUp(0)) { _heldItemScript.OpenFire(false); }
         
         if (Input.GetMouseButtonDown(1))
         {
@@ -203,8 +180,42 @@ public class PlayerController : NetworkBehaviour
             _cineMachine.m_Lens.FieldOfView =
                 isAds ? 40 - (Time.time - _adsTime) * 100 : 30 + (Time.time - _adsTime) * 100;
         }
-
+        
+        // _heldItemScript.AsWeapon();
     }
+    
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    public void PickUpItemRPC(NetworkObject netObj)
+    {
+        var gameObj = netObj.gameObject;
+        switch (gameObj.GetComponent<Item>().itemType)
+        {
+            case Item.ItemType.Weapon:
+                if (heldItemSlot.childCount > 0 && gameObj.name == heldItemSlot.GetChild(0)?.name) // もし同じ武器を拾ったら
+                {
+                    SmallArm weaponScript = heldItemSlot.GetChild(0).GetComponent<SmallArm>();
+                    weaponScript.ammo += weaponScript.capacity; // 1マガジン分弾薬増やす
+                    Runner.Despawn(gameObj.GetComponent<NetworkObject>());
+                }
+                else // もし同じ武器ではなかったら
+                {
+                    if(!_isAction) return; // 拾うキーを押していなかったら何もしない
+                    
+                    if (heldItemSlot.childCount > 0) Runner.Despawn(heldItemSlot.GetChild(0).GetComponent<NetworkObject>()); // 他の武器を持ってたら消す
+                    _heldItemScript = gameObj.GetComponent<SmallArm>();
+                    _heldItemScript.OnPickUp(heldItemSlot);
+                    weaponDataUI.transform.localScale = Vector3.one;
+                    weaponImageTra.GetComponent<RawImage>().texture = (Texture)Resources.Load($"Images/Item/{gameObj.name.Replace("(Clone)", "")}");
+                }
+                
+                break;
+            case Item.ItemType.Medic:
+                break;
+        }
+        
+        
+    }
+
     public void GetDamage(float damage)
     {
         hp -= damage * damageFactor;
@@ -215,6 +226,7 @@ public class PlayerController : NetworkBehaviour
     
     
     
+    // oncollision系は要修正
     private void OnCollisionStay(Collision other)
     {
         // なぜかこれはどのプレイヤーが当たってもホストで発火する

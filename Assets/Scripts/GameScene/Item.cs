@@ -1,7 +1,8 @@
 using System;
+using Fusion;
 using UnityEngine;
 
-public class Item : MonoBehaviour
+public class Item : NetworkBehaviour
 {
     private Rigidbody _rb;
     
@@ -16,9 +17,14 @@ public class Item : MonoBehaviour
     {
         _rb = GetComponent<Rigidbody>();
     }
-    
+
+    protected virtual void Update()
+    {
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y + 0.25f, transform.eulerAngles.z);
+    }
+
     private void OnCollisionStay(Collision other)
     {
-        if (other.gameObject.tag.Contains("Player")) other.gameObject.GetComponent<PlayerController>().PickUpItem(gameObject);
+        if (other.gameObject.tag.Contains("Player")) other.gameObject.GetComponent<PlayerController>().PickUpItemRPC(Object);
     }
 }

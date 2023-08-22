@@ -35,6 +35,8 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     [HideInInspector]public Transform marker2;
     [FormerlySerializedAs("SpawnItems")] [SerializeField]public GameObject[] spawnItems;
 
+    private bool _mouseButton0;
+    private bool _mouseButton1;
     private static float _spawnTimer;
 
     private void Awake()
@@ -54,6 +56,9 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
 
     private void Update()
     {
+        _mouseButton0 = _mouseButton0 || Input.GetMouseButton(0);
+        _mouseButton1 = _mouseButton1 || Input.GetMouseButton(1);
+        
         // if (!_runner.IsPlayer) return;
         if(!_runner.IsServer || !GameState.Equals(GameStates.InGame)) return;
         if(Time.time - _spawnTimer >= spawnTime) SpawnItem();
@@ -158,8 +163,14 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
             MoveDirection = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")),
             IsSprint = Input.GetKey(KeyCode.LeftShift),
             IsJump = Input.GetKey(KeyCode.Space),
-            IsAction = Input.GetKey(KeyCode.E)
+            IsAction = Input.GetKey(KeyCode.E),
+            IsReload = Input.GetKey(KeyCode.R),
         };
+
+        if (_mouseButton0) data.MouseButtons |= NetworkInputData.MOUSE_BUTTON1;
+        _mouseButton0 = false;
+        if (_mouseButton1) data.MouseButtons |= NetworkInputData.MOUSE_BUTTON2;
+        _mouseButton1 = false;
 
         input.Set(data);
     }
