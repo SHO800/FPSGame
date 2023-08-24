@@ -11,13 +11,14 @@ public class SmallArm : Item
     public GameObject bulletObject;
     // 発射する弾のオブジェクトに着弾時の効果とか仕込もう
     
-    [HideInInspector] public int ammoInMagazine;
     [HideInInspector] public int ammo;
     [HideInInspector] public bool isReloading;
     
+    [Networked] public int AmmoInMagazine { get; set; }
     [Networked] private TickTimer Interval { get; set; }
+    [Networked] private bool IsPickUpped { get; set; }
+    [Networked] public bool IsShooting { get; set; }
     
-    private bool _isPickUpped;
     private bool _isShooting;
     // private Rigidbody _rb;
     private Transform _owner;
@@ -35,11 +36,12 @@ public class SmallArm : Item
         _audioSource = GetComponent<AudioSource>();
         
         tag = "Item"; // 初期でアイテム状態
-        ammoInMagazine = capacity; // 初期からマガジン一個分入ってる
+        AmmoInMagazine = capacity; // 初期からマガジン一個分入ってる
         ammo = capacity; // 予備弾薬もついてくる
         itemType = ItemType.Weapon;
         _muzzle = transform.Find("Muzzle");
         _muzzleFlash = transform.Find("MuzzleFlashEffect").GetComponent<ParticleSystem>();
+        Rb = GetComponent<Rigidbody>();
     }
     
     
@@ -49,97 +51,85 @@ public class SmallArm : Item
         // PhotonView.Find((int)info.photonView.InstantiationData[0]).GetComponent<PlayerController>().text.text = "a";
         _owner = transform.root;
         _ownerController = _owner.GetComponent<PlayerController>(); 
+        _ownerController.ShowMessage("AAAAAAAAAAAAAAAA");
         _headBone = _ownerController.headBone;
     
         GetComponent<CapsuleCollider>().enabled = false;
-        GetComponent<Rigidbody>().isKinematic = true;
-        
-        // photonView.RequestOwnership();
+        Rb.isKinematic = true;
+        Debug.Log(Rb.isKinematic);
         tag = "Weapon";
-        _isPickUpped = true;
+        IsPickUpped = true;
         transform.localPosition = Vector3.zero;
         transform.rotation = _headBone.rotation;
-        // transform.position = transform.parent.position;
     }
 
 
     protected override void Update()
     {
-        if (_isPickUpped)
-        {
-            // AsWeapon();
-        }
-        else
-        {
-            base.Update();
-        }
+        if (!IsPickUpped) base.Update();
     }
 
     public override void FixedUpdateNetwork()
     {
-        if (_muzzleFlash is null )return;
+        if (_muzzleFlash is null) return;
 
-        if (_isPickUpped)
-        {
-            AsWeapon();
-        }
+        if (IsPickUpped) AsWeapon();
     }
     
     private void AsWeapon()
     {
-        
-        // 小銃弾をすべて同期することは難しいので、所有者のみが残弾管理等を行い他のクライアントは演出的に発砲のみを行う
-        
-        if (_ownerController.IsShooting && Interval.ExpiredOrNotRunning(Runner) && ammoInMagazine > 0 && !isReloading) // 発射中かつインターバルがないかつ残弾があるかつリロード中でない
+        if (!HasStateAuthority) return;
+        // 小銃弾をすべて同期することは難しいので、所有者が残弾管理等を行い他のクライアントは演出のみを行う
+        if (IsShooting && Interval.ExpiredOrNotRunning(Runner) && AmmoInMagazine > 0 && !isReloading) // 発射中かつインターバルがないかつ残弾があるかつリロード中でない
         {   // インターバルがなくなったので撃つ
             Interval = TickTimer.CreateFromSeconds(Runner, fireRate); // インターバル設定
-            // GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
-            
+
             NetworkObject bullet = Runner.Spawn(bulletObject, _headBone.position + _headBone.forward, _headBone.rotation, null,
                 (runner, o) => { o.GetComponent<NormalBullet>().Init();}); // 弾スポーン
             bullet.gameObject.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
             bullet.gameObject.GetComponent<NormalBullet>().damage = damage;
 
             Runner.Despawn(bullet.GetComponent<NetworkObject>());
-            _muzzleFlash.Play();
-            _audioSource.Play();
-            ammoInMagazine--;
+            DoEffectRPC();
+            AmmoInMagazine--;
         }
-    
-        if(ammoInMagazine == 0 && !isReloading) Reload(); //残弾がなくなったら自動的にリロード
         
-        
+        if(AmmoInMagazine == 0 && !isReloading) Reload(); //残弾がなくなったら自動的にリロード
+            
+            
         if (isReloading)
         {
-            _ownerController.weaponImageTra.eulerAngles = new Vector3(0, 0, (Time.time - _startReloadTime) / reloadTime * -360);
+            _ownerController.weaponImageTra.eulerAngles = new Vector3(0, 0, (Runner.SimulationRenderTime - _startReloadTime) / reloadTime * -360);
             _ownerController.weaponImageTra.localScale = new Vector3(0.1f, 0.1f, 0.1f);
         }
         else
         {
             _ownerController.weaponImageTra.eulerAngles = new Vector3(0, 0, 0);
             _ownerController.weaponImageTra.localScale = new Vector3(0.2f, 0.2f, 0.1f);
-            
+                
         }
-        if (isReloading && (Time.time - _startReloadTime) >= reloadTime) //リロード終了時
+        if (isReloading && (Runner.SimulationRenderTime - _startReloadTime) >= reloadTime) //リロード終了時
         {
             isReloading = false;
-            
-            int amount = ammo >= capacity - ammoInMagazine ? capacity - ammoInMagazine : ammo;; // 予備弾薬が装填する数より多ければマガジンいっぱい、でなければ予備弾薬ぜんぶ
-            ammoInMagazine += amount; // 予備弾薬が1マガジン分以上あるならその分装填、無いならあるだけ装填
+                
+            int amount = ammo >= capacity - AmmoInMagazine ? capacity - AmmoInMagazine : ammo;; // 予備弾薬が装填する数より多ければマガジンいっぱい、でなければ予備弾薬ぜんぶ
+            AmmoInMagazine += amount; // 予備弾薬が1マガジン分以上あるならその分装填、無いならあるだけ装填
             ammo -= amount;
         }
-        _ownerController.ammoTMP.text = $"{ammoInMagazine} / {ammo}";
-    }
-
-    public void OpenFire(bool status)
-    {
-        // photonView.RPC(nameof(OpenFireRpc), RpcTarget.All, status);
+        _ownerController.ammoTMP.text = $"{AmmoInMagazine} / {ammo}";
     }
     
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void DoEffectRPC()
+    {
+        _muzzleFlash.Play();
+        _audioSource.Play();
+    }
+
     public void Reload()
     {
         if (ammo <= 0) return; // 予備弾薬がなければ無理
         isReloading = true;
-        _startReloadTime = Time.time;
+        _startReloadTime = Runner.SimulationRenderTime;
     }
 }

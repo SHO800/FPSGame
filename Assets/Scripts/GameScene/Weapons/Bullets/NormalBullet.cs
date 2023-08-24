@@ -32,7 +32,7 @@ public class NormalBullet : NetworkBehaviour
     
     private void OnCollisionStay(Collision other)
     {
-        Runner.Despawn(Object);
+        if (Object is not null) Runner.Despawn(Object);
     }
 
     

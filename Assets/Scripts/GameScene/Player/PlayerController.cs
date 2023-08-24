@@ -35,15 +35,12 @@ public class PlayerController : NetworkBehaviour
     private string _nickName;
     private CinemachineVirtualCamera _cineMachine;
     private float _adsTime;
-    private TextMeshProUGUI _messageTMP;
     private TextMeshPro _playerNameTMP;
+    private TextMeshProUGUI _messageTMP;
     private Slider _hpBar;
-    private bool _isAction;
+    
 
-    [Networked] public bool IsShooting { get; private set; }
-    [Networked] private bool IsAds { get; set; }
-
-    private void Awake()
+    private void Start()
     {
         headBone = transform.Find("Avatar/Root/Hips/Spine/Spine1/Neck/Head");
         heldItemSlot = headBone.Find("HeldItemSlot");
@@ -56,14 +53,10 @@ public class PlayerController : NetworkBehaviour
         _cineMachine = GameObject.Find("PlayerFollowCamera").GetComponent<CinemachineVirtualCamera>();
         _mainCamera = Camera.main;
         _hpBar = GameObject.Find("HPBar").GetComponent<Slider>();
-    }
-
-    private void Start()
-    {
-        _messageTMP = GameObject.Find("MessageText").GetComponent<TextMeshProUGUI>();
+        _messageTMP = GameObject.Find("MessageText").GetComponent<TextMeshProUGUI>(); // それぞれの画面のオブジェクトがそれぞれ実行するのでそれぞれの画面に表示される
         _playerNameTMP = transform.Find("PlayerName").GetComponent<TextMeshPro>();
         
-        if (!_networkObject.HasInputAuthority) return;
+        if (!_networkObject.HasStateAuthority) return;
         // マウスカーソルを捕まえる
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -73,26 +66,52 @@ public class PlayerController : NetworkBehaviour
         Debug.Log(_mainCamera);
     }
 
-    public override void FixedUpdateNetwork()
+    private void Update()
     {
-        if (!GetInput(out NetworkInputData data) ) return;
-        _isAction = data.IsAction;
-        MovePosition(data);
-        RotateHead(data);
-        WeaponControl(data);
+        if(!HasStateAuthority) return;
+        
+        //TODO: WeaponControlと折り合いをつける
+        // 左クリックが押された・離されたときに状態更新
+        if (_heldItemScript is not null && Input.GetMouseButtonDown(0)) _heldItemScript.IsShooting = true;
+        if (_heldItemScript is not null && Input.GetMouseButtonUp(0)) _heldItemScript.IsShooting = false;
+        
+        if (Input.GetMouseButtonDown(1))
+        {
+            isAds = true;
+            heldItemSlot.localPosition = new Vector3(0, -0.15f, 0.5f);
+            _adsTime = Runner.SimulationRenderTime; // TODO:lifeTimeに変更
+        }
+        
+        if (Input.GetMouseButtonUp(1))
+        {
+            isAds = false; 
+            heldItemSlot.localPosition = new Vector3(0.3f, -0.3f, 0.5f);
+            _adsTime = Runner.SimulationRenderTime;// TODO:lifeTimeに変更
+        }
+        
+        // MovePosition();
+        // RotateHead();
+        // WeaponControl();
+        RotateHead();
     }
 
-    private void MovePosition(NetworkInputData data)
+    public override void FixedUpdateNetwork()
     {
-        float speed = data.IsSprint ? sprintSpeed : normalSpeed; // 移動速度を取得
+        if (!HasStateAuthority) return;
+        MovePosition();
+        WeaponControl();
+    }
+    private void MovePosition()
+    {
+        float speed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : normalSpeed; // 移動速度を取得
         Vector3 cameraForward = Vector3.Scale(
-            headBone.transform.forward,
+            _mainCamera.transform.forward,
             new Vector3(1, 0, 1)
         ).normalized; // カメラの正面方向のベクトルを取得
 
         // 移動キーの入力から移動ベクトルを取得
-        Vector3 moveZ = cameraForward * (data.MoveDirection.z * 1); // 前後(カメラ基準)
-        Vector3 moveX = headBone.transform.right * (data.MoveDirection.x * 1); // 左右(カメラ基準)
+        Vector3 moveZ = cameraForward * Input.GetAxis("Vertical"); // 前後(カメラ基準)
+        Vector3 moveX = headBone.transform.right * Input.GetAxis("Horizontal"); // 左右(カメラ基準)
         Vector3 moveDirection = moveX + moveZ;
         Vector3 move = moveDirection * speed;
         
@@ -116,7 +135,7 @@ public class PlayerController : NetworkBehaviour
         }
         else
         {
-            if (data.IsJump && _isOnGround)
+            if (Input.GetKey(KeyCode.Space) && _isOnGround)
             {
                 _rb.AddForce(new Vector3(0, jump, 0), ForceMode.VelocityChange);
                 _isOnGround = false;
@@ -124,84 +143,64 @@ public class PlayerController : NetworkBehaviour
         }
     }
     
-    private void RotateHead(NetworkInputData data)
+    private void RotateHead()
     {
-        _rb.MoveRotation(Quaternion.Euler(
-            0,
-            _rb.rotation.eulerAngles.y + data.CameraDirection.x * mouseSensibilityHorizontal,
-            0)
-        );
-        
-        if (Mathf.Abs(headBone.eulerAngles.x + data.CameraDirection.y * -mouseSensibilityVertical - 180f) > 95f) // 上下85°までのみ回転可
+        transform.Rotate( // 体を左右
+            new Vector2(
+                0,
+                Input.GetAxis("Mouse X") * mouseSensibilityHorizontal
+            ), Space.World);
+        if (Mathf.Abs(headBone.eulerAngles.x + Input.GetAxis("Mouse Y") * -mouseSensibilityVertical - 180f) > 95f) // 上下85°までのみ回転可 TODO:クランプに変更
         {
             headBone.Rotate( // 頭を上下
                 new Vector2(
-                    data.CameraDirection.y * -mouseSensibilityVertical,
+                    Input.GetAxis("Mouse Y") * -mouseSensibilityVertical,
                     0
                 ), Space.Self);
         }
     }
     
-    private void WeaponControl(NetworkInputData data)
+    private void WeaponControl()
     {
-        IsShooting = (data.MouseButtons & NetworkInputData.MOUSE_BUTTON1) != 0; 
-        IsAds = (data.MouseButtons & NetworkInputData.MOUSE_BUTTON2) != 0;
-        
         if (_heldItemScript is null) return;
         
-        if (data.IsReload && !_heldItemScript.isReloading)
+        if (Input.GetKey(KeyCode.R) && !_heldItemScript.isReloading)
         {
             _heldItemScript.Reload();
         }
         
-        // 左クリックが押された・離されたときに状態更新
-        // if (Input.GetMouseButtonDown(0)) { _heldItemScript.OpenFire(true); }
-        // if (Input.GetMouseButtonUp(0)) { _heldItemScript.OpenFire(false); }
         
-        if (Input.GetMouseButtonDown(1))
-        {
-            isAds = true;
-            heldItemSlot.localPosition = new Vector3(0, -0.15f, 0.5f);
-            _adsTime = Time.time;
-        }
-        
-        if (Input.GetMouseButtonUp(1))
-        {
-            isAds = false; 
-            heldItemSlot.localPosition = new Vector3(0.3f, -0.3f, 0.5f);
-            _adsTime = Time.time;
-        }
-        
-        if (Time.time - _adsTime < 0.1)
+        if (Runner.SimulationRenderTime - _adsTime < 0.1)
         {
             _cineMachine.m_Lens.FieldOfView =
-                isAds ? 40 - (Time.time - _adsTime) * 100 : 30 + (Time.time - _adsTime) * 100;
+                isAds ? 40 - (Runner.SimulationRenderTime - _adsTime) * 100 : 30 + (Runner.SimulationRenderTime - _adsTime) * 100;// TODO:lifeTimeに変更する
         }
         
         // _heldItemScript.AsWeapon();
-    }
+    }   
     
-    [Rpc(RpcSources.All, RpcTargets.All)]
-    public void PickUpItemRPC(NetworkObject netObj)
+    public void PickUpItem(GameObject gameObj)
     {
-        ShowMessage("RPCReceived");
+        NetworkObject gameObjNetworkObject = gameObj.GetComponent<NetworkObject>();
         Debug.Log($"PickUpItemRPC/{gameObject.name}");
-        var gameObj = netObj.gameObject;
         switch (gameObj.GetComponent<Item>().itemType)
         {
             case Item.ItemType.Weapon:
                 if (heldItemSlot.childCount > 0 && gameObj.name == heldItemSlot.GetChild(0)?.name) // もし同じ武器を拾ったら
                 {
-                    SmallArm weaponScript = heldItemSlot.GetChild(0).GetComponent<SmallArm>();
-                    weaponScript.ammo += weaponScript.capacity; // 1マガジン分弾薬増やす
-                    Runner.Despawn(gameObj.GetComponent<NetworkObject>());
+                    Debug.Log("同じやつ");
+                    _heldItemScript.ammo += _heldItemScript.capacity; // 1マガジン分弾薬増やす
+                    Runner.Despawn(gameObjNetworkObject);
                 }
                 else // もし同じ武器ではなかったら
                 {
-                    if(!_isAction) return; // 拾うキーを押していなかったら何もしない
+                    Debug.Log("拾える");
+                    if(!Input.GetKey(KeyCode.E)) return; // 拾うキーを押していなかったら何もしない
+                    Debug.Log("拾うキー");
                     
                     if (heldItemSlot.childCount > 0) Runner.Despawn(heldItemSlot.GetChild(0).GetComponent<NetworkObject>()); // 他の武器を持ってたら消す
-                    _heldItemScript = gameObj.GetComponent<SmallArm>();
+                    // if(!gameObjNetworkObject.HasStateAuthority) gameObjNetworkObject.RequestStateAuthority();
+                    _heldItemScript = gameObjNetworkObject.GetComponent<SmallArm>();
                     _heldItemScript.OnPickUp(heldItemSlot);
                     weaponDataUI.transform.localScale = Vector3.one;
                     weaponImageTra.GetComponent<RawImage>().texture = (Texture)Resources.Load($"Images/Item/{gameObj.name.Replace("(Clone)", "")}");
@@ -215,6 +214,8 @@ public class PlayerController : NetworkBehaviour
         
     }
 
+    //Debug
+    [Networked(OnChanged = nameof(OnChangedMessage))] private string AvatarMessage { get; set; }
     private string _pastMessage;
     private int _num = 0;
     //引数に取った文字列を画面上に表示できるメソッド
@@ -224,13 +225,18 @@ public class PlayerController : NetworkBehaviour
         //messageの1文字目に0~9までの数字を挿入し、_pastMessageとmessageの内容が同じならそれに1を加えて表示する
         if (message == _pastMessage)
         {
-            _pastMessage = message;
             message = message + _num;
-        } 
-        _messageTMP.text = message;
-        _playerNameTMP.text = message;
+        }
+        AvatarMessage = message;
 
         _pastMessage = message;
+    }
+
+    public static void OnChangedMessage(Changed<PlayerController> changed)
+    {
+        // changed.Behaviour._messageTMP.text = changed.Behaviour.AvatarMessage;
+        if(changed.Behaviour._playerNameTMP is null) return;
+        changed.Behaviour._playerNameTMP.text = changed.Behaviour.AvatarMessage;
     }
 
     public void GetDamage(float damage)
@@ -243,19 +249,25 @@ public class PlayerController : NetworkBehaviour
     
     
     
-    // oncollision系は要修正
     private void OnCollisionStay(Collision other)
     {
-        // なぜかこれはどのプレイヤーが当たってもホストで発火する
+        // なぜかこれはどのプレイヤーが当たってもホストで発火する 追記: HostClientモードのみ
         
-        // Debug.Log(other.collider.gameObject);
-        // Debug.Log(other.rigidbody.);
+
         if (other.gameObject.tag.Contains("Ground")) _isOnGround = true;
-        // if(other.gameObject.tag.Contains("Item")) Debug.Log("Collision item");
-        // if (other.gameObject.tag.Contains("Item") && Input.GetKey(KeyCode.E))
-        // {
-        //     PickUpItem(other.gameObject);
-        // }
+        if(other.gameObject.tag.Contains("Item") && HasStateAuthority) ShowMessage("Collision item");
+        if (other.gameObject.tag.Contains("Item"))
+        {
+            var netObj = other.gameObject.GetComponent<NetworkObject>();
+            if (netObj.HasStateAuthority)
+            {
+                PickUpItem(other.gameObject);
+            }
+            else
+            {
+                netObj.RequestStateAuthority();
+            }
+        }
     }
 
     private void OnCollisionExit(Collision other)

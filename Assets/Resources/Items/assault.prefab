@@ -62,9 +62,10 @@ MonoBehaviour:
   reloadTime: 4
   bulletObject: {fileID: 2198387763713374461, guid: 2462aa49a5a74424881d14675b3253fd,
     type: 3}
-  ammoInMagazine: 0
   ammo: 0
   isReloading: 0
+  _AmmoInMagazine: 0
+  _IsShooting: 0
 --- !u!136 &8964578161400274615
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -225,7 +226,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ObjectInterest: 1
   DefaultInterestGroups: []
-  DestroyWhenStateAuthorityLeaves: 0
+  DestroyWhenStateAuthorityLeaves: 1
   AllowStateAuthorityOverride: 1
   AoiPositionSource: {fileID: 0}
   Flags: 2305
@@ -248,7 +249,7 @@ MonoBehaviour:
   m_Script: {fileID: 1710889294, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
+  _interpolationDataSource: 3
   InterpolationSpace: 0
   InterpolationTarget: {fileID: 6805585021539350630}
   InterpolateErrorCorrection: 1
