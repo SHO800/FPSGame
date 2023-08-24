@@ -14,10 +14,10 @@ public class SmallArm : Item
     [HideInInspector] public int ammo;
     [HideInInspector] public bool isReloading;
     
-    [Networked] public int AmmoInMagazine { get; set; }
+    [HideInInspector, Networked] public int AmmoInMagazine { get; set; }
+    [HideInInspector, Networked] public bool IsShooting { get; set; }
     [Networked] private TickTimer Interval { get; set; }
     [Networked] private bool IsPickUpped { get; set; }
-    [Networked] public bool IsShooting { get; set; }
     
     private bool _isShooting;
     // private Rigidbody _rb;
@@ -50,8 +50,7 @@ public class SmallArm : Item
         transform.SetParent(itemSlot, false);
         // PhotonView.Find((int)info.photonView.InstantiationData[0]).GetComponent<PlayerController>().text.text = "a";
         _owner = transform.root;
-        _ownerController = _owner.GetComponent<PlayerController>(); 
-        _ownerController.ShowMessage("AAAAAAAAAAAAAAAA");
+        _ownerController = _owner.GetComponent<PlayerController>();
         _headBone = _ownerController.headBone;
     
         GetComponent<CapsuleCollider>().enabled = false;

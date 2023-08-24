@@ -251,21 +251,14 @@ public class PlayerController : NetworkBehaviour
     
     private void OnCollisionStay(Collision other)
     {
-        // なぜかこれはどのプレイヤーが当たってもホストで発火する 追記: HostClientモードのみ
-        
-
         if (other.gameObject.tag.Contains("Ground")) _isOnGround = true;
-        if(other.gameObject.tag.Contains("Item") && HasStateAuthority) ShowMessage("Collision item");
         if (other.gameObject.tag.Contains("Item"))
         {
             var netObj = other.gameObject.GetComponent<NetworkObject>();
-            if (netObj.HasStateAuthority)
+            if (heldItemSlot.childCount > 0 && other.gameObject.name == heldItemSlot.GetChild(0)?.name || Input.GetKey(KeyCode.E)) // 仮置きでPickUpItemと同じ条件
             {
-                PickUpItem(other.gameObject);
-            }
-            else
-            {
-                netObj.RequestStateAuthority();
+                if (netObj.HasStateAuthority) PickUpItem(other.gameObject);
+                else netObj.RequestStateAuthority();
             }
         }
     }

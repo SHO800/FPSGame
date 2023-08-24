@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Fusion;
 using UnityEngine;
 
 public class Item : NetworkBehaviour
 {
     protected Rigidbody Rb;
-    
+
     [HideInInspector] public ItemType itemType;
     public enum ItemType
     {
@@ -22,5 +24,4 @@ public class Item : NetworkBehaviour
     {
         transform.eulerAngles = new Vector3(transform.eulerAngles.x, transform.eulerAngles.y + 0.25f, transform.eulerAngles.z);
     }
-
 }
