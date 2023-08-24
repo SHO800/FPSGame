@@ -61,7 +61,8 @@ public class SmallArm : Item
         transform.rotation = _headBone.rotation;
         // transform.position = transform.parent.position;
     }
-    
+
+
     protected override void Update()
     {
         if (_isPickUpped)
@@ -93,10 +94,12 @@ public class SmallArm : Item
         {   // インターバルがなくなったので撃つ
             Interval = TickTimer.CreateFromSeconds(Runner, fireRate); // インターバル設定
             // GameObject bullet = Instantiate(bulletObject, _muzzle.position, _owner.GetComponent<PlayerController>().headBone.rotation); // 弾スポーン
+            
             NetworkObject bullet = Runner.Spawn(bulletObject, _headBone.position + _headBone.forward, _headBone.rotation, null,
                 (runner, o) => { o.GetComponent<NormalBullet>().Init();}); // 弾スポーン
-            bullet.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
-            bullet.GetComponent<NormalBullet>().damage = damage;
+            bullet.gameObject.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
+            bullet.gameObject.GetComponent<NormalBullet>().damage = damage;
+
             Runner.Despawn(bullet.GetComponent<NetworkObject>());
             _muzzleFlash.Play();
             _audioSource.Play();

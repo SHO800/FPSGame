@@ -114,8 +114,7 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     
     private void SpawnItem()
     {
-        NetworkObject networkPlayerObject = _runner.Spawn(spawnItems[Random.Range(0, spawnItems.Length)], GenerateRandomSpawnPos(), Quaternion.identity);
-        
+        NetworkObject item = _runner.Spawn(spawnItems[Random.Range(0, spawnItems.Length)], GenerateRandomSpawnPos(), Quaternion.identity);
         _spawnTimer = Time.time;
     }
     
@@ -132,6 +131,9 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         Vector3 spawnPosition =
             new Vector3((player.RawEncoded % runner.Config.Simulation.DefaultPlayers) * 3, 1, 0);
         NetworkObject networkPlayerObject = runner.Spawn(playerPrefab, spawnPosition, Quaternion.identity, player);
+        
+        //networkPlayerObjectの名前をPlayer(Clone)からPlayer1,2,3...に変更
+        networkPlayerObject.gameObject.name = $"Player{player.RawEncoded}";
         
         // プレイヤー切断時にアバターを消去できるよう辞書に入れとく
         _spawnedCharacters.Add(player, networkPlayerObject);

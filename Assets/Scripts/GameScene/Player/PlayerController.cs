@@ -36,6 +36,7 @@ public class PlayerController : NetworkBehaviour
     private CinemachineVirtualCamera _cineMachine;
     private float _adsTime;
     private TextMeshProUGUI _messageTMP;
+    private TextMeshPro _playerNameTMP;
     private Slider _hpBar;
     private bool _isAction;
 
@@ -54,13 +55,14 @@ public class PlayerController : NetworkBehaviour
         _rb = GetComponent<Rigidbody>();
         _cineMachine = GameObject.Find("PlayerFollowCamera").GetComponent<CinemachineVirtualCamera>();
         _mainCamera = Camera.main;
-        _messageTMP = GameObject.Find("MessageText").GetComponent<TextMeshProUGUI>();
         _hpBar = GameObject.Find("HPBar").GetComponent<Slider>();
-        
     }
 
     private void Start()
     {
+        _messageTMP = GameObject.Find("MessageText").GetComponent<TextMeshProUGUI>();
+        _playerNameTMP = transform.Find("PlayerName").GetComponent<TextMeshPro>();
+        
         if (!_networkObject.HasInputAuthority) return;
         // マウスカーソルを捕まえる
         Cursor.visible = false;
@@ -69,11 +71,6 @@ public class PlayerController : NetworkBehaviour
         var cameraRoot = headBone.Find("PlayerCameraRoot");
         _cineMachine.Follow = cameraRoot;
         Debug.Log(_mainCamera);
-    }
-
-    private void Update()
-    {
-        
     }
 
     public override void FixedUpdateNetwork()
@@ -187,6 +184,8 @@ public class PlayerController : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.All)]
     public void PickUpItemRPC(NetworkObject netObj)
     {
+        ShowMessage("RPCReceived");
+        Debug.Log($"PickUpItemRPC/{gameObject.name}");
         var gameObj = netObj.gameObject;
         switch (gameObj.GetComponent<Item>().itemType)
         {
@@ -214,6 +213,24 @@ public class PlayerController : NetworkBehaviour
         }
         
         
+    }
+
+    private string _pastMessage;
+    private int _num = 0;
+    //引数に取った文字列を画面上に表示できるメソッド
+    public void ShowMessage(string message)
+    {
+        _num = _num == 9 ? 0 : _num + 1;
+        //messageの1文字目に0~9までの数字を挿入し、_pastMessageとmessageの内容が同じならそれに1を加えて表示する
+        if (message == _pastMessage)
+        {
+            _pastMessage = message;
+            message = message + _num;
+        } 
+        _messageTMP.text = message;
+        _playerNameTMP.text = message;
+
+        _pastMessage = message;
     }
 
     public void GetDamage(float damage)
