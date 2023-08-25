@@ -197,11 +197,15 @@ MonoBehaviour:
   roomSelectorInstance: {fileID: 0}
   playerPrefab:
     RawGuidValue: 6c5b005aad18ad64babc796916a11f36
-  spawnTime: 5
   marker1: {fileID: 0}
   marker2: {fileID: 0}
+  spawnTime: 5
   spawnItems:
+  - {fileID: 8198909352693198359, guid: 652cdc835441e5043a8174fa78b0a758, type: 3}
+  - {fileID: 8198909352693198359, guid: ca1360beda178344b9e74d71bebcf998, type: 3}
   - {fileID: 911385219652104893, guid: 961d4411fc931a7489e92471e43a9026, type: 3}
+  - {fileID: 911385219652104893, guid: b547b11f7c9ce9444a7ab547aa7f4040, type: 3}
+  spawnChance: 140000000f000000230000001e000000
 --- !u!1 &1420498473
 GameObject:
   m_ObjectHideFlags: 0

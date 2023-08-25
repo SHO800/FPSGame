@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7826774045186903129}
   - component: {fileID: 6286106250516516665}
   - component: {fileID: 7257921907831555242}
-  m_Layer: 10
+  m_Layer: 24
   m_Name: NormalBullet
   m_TagString: Bullet
   m_Icon: {fileID: 0}
@@ -218,7 +218,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ObjectInterest: 1
   DefaultInterestGroups: []
-  DestroyWhenStateAuthorityLeaves: 0
+  DestroyWhenStateAuthorityLeaves: 1
   AllowStateAuthorityOverride: 1
   AoiPositionSource: {fileID: 0}
   Flags: 2305
@@ -268,7 +268,7 @@ GameObject:
   - component: {fileID: 6975927013663489983}
   - component: {fileID: 1596862039477256606}
   - component: {fileID: 8271245855373838343}
-  m_Layer: 10
+  m_Layer: 24
   m_Name: Bullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -6,10 +6,7 @@ using System.Reflection;
 using UnityEngine;
 using Fusion;
 using Fusion.Sockets;
-using Unity.VisualScripting;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 public enum GameStates: byte
@@ -32,18 +29,21 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     [SerializeField] private NetworkPrefabRef playerPrefab;
     private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
 
-    private bool _isInitialized;
+    private bool _isInitialized; // ゲームを開始したマスターでのみ有効化される TODO:マスターが変わったときのために_isInitializedはすべてのクライアントで有効にしておき、IsMaster的なのでスポーンするクライアントを変更するべきな気がする
     
     [HideInInspector]public Transform marker1;
     [HideInInspector]public Transform marker2;
     public float spawnTime;
-    private GameObject[] _spawnItems;
+    [SerializeField] private GameObject[] spawnItems;
+    [Header("※合計100になるように入れること")] // コードで合計100に整えるのは面倒
+    [SerializeField] private int[] spawnChance;
 
     private bool _mouseButton0;
     private bool _mouseButton1;
     private static float _spawnTimer;
     private bool _isGameSceneLoaded;
 
+    
     private void Awake()
     {
         Instance = this;
@@ -51,9 +51,6 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
 
     private async void Start()
     {
-        //マスタークライアントになったときにスポーンするプレハブをResources/Itemsから読み込んでおく
-        _spawnItems = Array.ConvertAll(Resources.LoadAll("Items"), item => item as GameObject);
-
         if (_runner is not null) return;
         // ネットワーククライアント立ち上げ
         _runner = gameObject.AddComponent<NetworkRunner>();
@@ -132,7 +129,35 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     
     private void SpawnItem()
     {
-        NetworkObject item = _runner.Spawn(_spawnItems[Random.Range(0, _spawnItems.Length)], GenerateRandomSpawnPos(), Quaternion.identity);
+        // 確率でどのアイテムが出るかを決める 思ったより考えること多い...
+        int totalChance = spawnChance.Sum();
+        int drawnNum = Random.Range(0, totalChance);
+        int retryCount = 0;
+        float checkedNum = 0;
+        GameObject spawnItem = null;
+        
+        if (totalChance <= 0)
+        {
+            Debug.LogWarning("NetworkManagerでアイテム出現確率の合計が100じゃないです");
+            return;
+        }
+        while (spawnItem is null && retryCount < 10)
+        {
+            for (int i = 0; i < spawnItems.Length; i++)
+            {
+                if (checkedNum <= drawnNum && drawnNum < checkedNum + spawnChance[i])
+                {
+                    spawnItem = spawnItems[i];
+                    break;
+                }
+                checkedNum += spawnChance[i];
+            }
+
+            retryCount++;
+        }
+        if(spawnItem is null) return; // 10回抽選してもなんかだめだったらもう設定の不備
+        
+        NetworkObject item = _runner.Spawn(spawnItem, GenerateRandomSpawnPos(), Quaternion.identity);
         item.ReleaseStateAuthority();
         _spawnTimer = Runner.SimulationRenderTime;
     }
@@ -180,7 +205,6 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         if (_isInitialized) return;
         marker1 = GameObject.Find("Marker1").transform;
         marker2 = GameObject.Find("Marker2").transform;
-        // spawnItems = spawnItems;
         _spawnTimer = 0;
         _isInitialized = true;
     }

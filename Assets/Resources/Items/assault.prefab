@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 6198031588055214507}
   - component: {fileID: 4351279131284121437}
   - component: {fileID: 243299966272952368}
-  m_Layer: 0
+  m_Layer: 31
   m_Name: Assault
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -55,7 +55,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   itemType: 0
-  fireRate: 0.1
+  fireRate: 0.15
   damage: 4
   bulletSpeed: 200
   capacity: 30
@@ -276,7 +276,7 @@ GameObject:
   - component: {fileID: 5217792073664438261}
   - component: {fileID: 1039776994737528716}
   - component: {fileID: 8218606489785963277}
-  m_Layer: 5
+  m_Layer: 31
   m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -410,7 +410,7 @@ GameObject:
   - component: {fileID: 6805585021539350630}
   - component: {fileID: 5343900620943062657}
   - component: {fileID: 9128441501811850197}
-  m_Layer: 0
+  m_Layer: 31
   m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -493,7 +493,7 @@ GameObject:
   - component: {fileID: 663934394116021661}
   - component: {fileID: 5493112151731600875}
   - component: {fileID: 5510355445030372594}
-  m_Layer: 0
+  m_Layer: 31
   m_Name: MuzzleFlashEffect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5378,7 +5378,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7326789916073615512}
-  m_Layer: 0
+  m_Layer: 31
   m_Name: Muzzle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5412,7 +5412,7 @@ GameObject:
   - component: {fileID: 6047215510142274837}
   - component: {fileID: 2316983300346936463}
   - component: {fileID: 1467216562038986187}
-  m_Layer: 5
+  m_Layer: 31
   m_Name: Debug
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5513,7 +5513,7 @@ GameObject:
   - component: {fileID: 205564270568536020}
   - component: {fileID: 361672763176730320}
   - component: {fileID: 3049464253138204556}
-  m_Layer: 0
+  m_Layer: 31
   m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Fusion;
 using UnityEngine;
 
@@ -12,7 +9,7 @@ public class Item : NetworkBehaviour
     public enum ItemType
     {
         Weapon,
-        Medic,
+        AidKit,
     }
 
     private void Start()

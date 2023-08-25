@@ -4,7 +4,7 @@ using UnityEngine;
 public class SmallArm : Item
 {
     public float fireRate;
-    public float damage;
+    public int damage;
     public float bulletSpeed;
     public int capacity;
     public float reloadTime;
@@ -55,7 +55,6 @@ public class SmallArm : Item
     
         GetComponent<CapsuleCollider>().enabled = false;
         Rb.isKinematic = true;
-        Debug.Log(Rb.isKinematic);
         tag = "Weapon";
         IsPickUpped = true;
         transform.localPosition = Vector3.zero;
@@ -87,8 +86,7 @@ public class SmallArm : Item
                 (runner, o) => { o.GetComponent<NormalBullet>().Init();}); // 弾スポーン
             bullet.gameObject.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
             bullet.gameObject.GetComponent<NormalBullet>().damage = damage;
-
-            Runner.Despawn(bullet.GetComponent<NetworkObject>());
+            
             DoEffectRPC();
             AmmoInMagazine--;
         }

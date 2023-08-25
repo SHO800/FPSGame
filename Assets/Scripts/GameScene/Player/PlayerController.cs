@@ -16,8 +16,7 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private float jump = 1f;
     
     [HideInInspector] public Transform heldItemSlot;
-    
-    [HideInInspector] public float hp = 100f;
+    [HideInInspector, Networked] public int Hp { set; get; } = 100;
     [HideInInspector] public float damageFactor = 1f;
     [HideInInspector] public bool isOpenFire;
     [HideInInspector] public bool isAds;
@@ -100,6 +99,8 @@ public class PlayerController : NetworkBehaviour
         if (!HasStateAuthority) return;
         MovePosition();
         WeaponControl();
+        
+        ShowMessage(Hp.ToString()); //Debug
     }
     private void MovePosition()
     {
@@ -207,7 +208,10 @@ public class PlayerController : NetworkBehaviour
                 }
                 
                 break;
-            case Item.ItemType.Medic:
+            case Item.ItemType.AidKit:
+                int healAmount = gameObj.GetComponent<AidKit>().healAmount;
+                Hp = Hp + healAmount > 100 ? 100 : Hp + healAmount;
+                Runner.Despawn(gameObjNetworkObject);
                 break;
         }
         
@@ -239,9 +243,11 @@ public class PlayerController : NetworkBehaviour
         changed.Behaviour._playerNameTMP.text = changed.Behaviour.AvatarMessage;
     }
 
-    public void GetDamage(float damage)
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void GetDamageRPC(int damage)
     {
-        hp -= damage * damageFactor;
+        Debug.Log($"GetDamage: {damage}");
+        Hp -= (int)Math.Round(damage * damageFactor, MidpointRounding.AwayFromZero);
         // if (hp <= 0) photonView.RPC(nameof(Dead), RpcTarget.All);
         // if (hp <= 0) Dead();
         
@@ -255,7 +261,7 @@ public class PlayerController : NetworkBehaviour
         if (other.gameObject.tag.Contains("Item"))
         {
             var netObj = other.gameObject.GetComponent<NetworkObject>();
-            if (heldItemSlot.childCount > 0 && other.gameObject.name == heldItemSlot.GetChild(0)?.name || Input.GetKey(KeyCode.E)) // 仮置きでPickUpItemと同じ条件
+            if (heldItemSlot.childCount > 0 && other.gameObject.name == heldItemSlot.GetChild(0)?.name || Input.GetKey(KeyCode.E) ||  other.gameObject.TryGetComponent(out AidKit aidKit)) // 仮置きでPickUpItemと同じ条件も使う
             {
                 if (netObj.HasStateAuthority) PickUpItem(other.gameObject);
                 else netObj.RequestStateAuthority();
