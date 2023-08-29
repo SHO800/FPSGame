@@ -7,30 +7,31 @@ using UnityEngine;
 using Fusion;
 using Fusion.Sockets;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 public enum GameStates: byte
 {
     Waiting = 0,
     InGame = 1,
-    Result = 2
+    Finished = 2
 }
 
 public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
 {
     
-    public static NetworkManager Instance;
+    public static NetworkManager Instance { get; private set; }
     [HideInInspector] public string nickName;
     [HideInInspector] public RoomSelector roomSelectorInstance; // RoomSelectorは1つしか存在し得ないのでそっちからsetしてもらう
     private NetworkRunner _runner;
-    // [Networked(OnChanged = nameof(OnGameStateChanged))]private GameStates GameState { get; set; }
-    private GameStates GameState { get; set; }
+    [SerializeField] private GameObject networkDataManagerPrefab;
 
     [SerializeField] private NetworkPrefabRef playerPrefab;
     private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
 
     private bool _isInitialized; // ゲームを開始したマスターでのみ有効化される TODO:マスターが変わったときのために_isInitializedはすべてのクライアントで有効にしておき、IsMaster的なのでスポーンするクライアントを変更するべきな気がする
     
+    public NetworkDataManager NetworkDataManager{private set; get;}
     [HideInInspector]public Transform marker1;
     [HideInInspector]public Transform marker2;
     public float spawnTime;
@@ -73,10 +74,9 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         _mouseButton1 = _mouseButton1 || Input.GetMouseButton(1);
         
         if(!_runner.IsSharedModeMasterClient) return;
-        if (Input.GetKeyDown(KeyCode.Return))
+        if (Input.GetKeyDown(KeyCode.Return) && !_isInitialized)
         {
             StartGame();
-            Debug.Log("StartGame");
         }
     }
     public override void FixedUpdateNetwork()
@@ -138,7 +138,6 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         
         if (totalChance <= 0)
         {
-            Debug.LogWarning("NetworkManagerでアイテム出現確率の合計が100じゃないです");
             return;
         }
         while (spawnItem is null && retryCount < 10)
@@ -164,24 +163,27 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     
     public void OnConnectedToServer(NetworkRunner runner)
     {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
     }
-
-    public static void OnGameStateChanged(Changed<NetworkManager> changed)
-    {
-        // if(changed.Behaviour.GameState == GameStates.InGame) Debug.Log("GameStarted");
-    }
+    
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        Debug.Log("joinned");
-        if (player != Runner.LocalPlayer) return;
+        //入ったのが自分だったときの処理だけ
+        
+        if (Runner.IsSharedModeMasterClient) // もし自分がマスターなら(すなわち自分が最初に入ったプレイヤーなら)
+        {
+            StartCoroutine(SpawnNetworkDataManager(player));
+        }
+
+        if (player != Runner.LocalPlayer) return; // 自分以外は無視
         StartCoroutine(SpawnPlayer(player));
 
-
-        // プレイヤー切断時にアバターを消去できるよう辞書に入れとく
-        // _spawnedCharacters.Add(player, networkPlayerObject);
-
         // Debug用に一人入ったらもうゲーム開始にする
+    }
+    
+    private IEnumerator SpawnNetworkDataManager(PlayerRef player)
+    {
+        yield return new WaitUntil(() => _isGameSceneLoaded);
+        NetworkDataManager = Runner.Spawn(networkDataManagerPrefab, Vector3.zero, Quaternion.identity, player, (r, o) => { o.name = "NetworkDataManager";}).GetComponent<NetworkDataManager>(); // NetworkDataManagerを出しとく
     }
     
     private IEnumerator SpawnPlayer(PlayerRef player)
@@ -196,12 +198,15 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         //networkPlayerObjectの名前をPlayer(Clone)からPlayer1,2,3...に変更
         networkPlayerObject.gameObject.name = $"Player{player.RawEncoded}";
         
+        //NetworkDataManagerを取得
+        NetworkDataManager ??= GameObject.Find("NetworkDataManager(Clone)").GetComponent<NetworkDataManager>(); //NetworkDataManagerの名前から(Clone)を消したかったけどなんか普通の方法ではできなかった
+        
         // StartGame();
     }
 
     private void StartGame()
     {
-        GameState = GameStates.InGame; 
+        NetworkDataManager.GameState = GameStates.InGame; 
         if (_isInitialized) return;
         marker1 = GameObject.Find("Marker1").transform;
         marker2 = GameObject.Find("Marker2").transform;
@@ -211,6 +216,8 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) 
     {
+        // TODO: 退出時にNetworkDataManagerの権限委譲とか色々
+        
         // if (_spawnedCharacters.TryGetValue(player, out NetworkObject networkObject))
         // {
         //     runner.Despawn(networkObject);
@@ -220,81 +227,33 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     
     public void OnInput(NetworkRunner runner, NetworkInput input)
     {
-        //Shareモード移行で不要に?
-        
-        // NetworkInputData data = new NetworkInputData
-        // {
-        //     CameraDirection = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")), // クライアントの情報をそのまま適用するのはチート対策等の観点では良くないけどレスポンスがあまりに悪すぎるのでこの方法に
-        //     MoveDirection = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")),
-        //     IsSprint = Input.GetKey(KeyCode.LeftShift),
-        //     IsJump = Input.GetKey(KeyCode.Space),
-        //     IsAction = Input.GetKey(KeyCode.E),
-        //     IsReload = Input.GetKey(KeyCode.R),
-        // };
-        //
-        // if (_mouseButton0) data.MouseButtons |= NetworkInputData.MOUSE_BUTTON1;
-        // _mouseButton0 = false;
-        // if (_mouseButton1) data.MouseButtons |= NetworkInputData.MOUSE_BUTTON2;
-        // _mouseButton1 = false;
-        //
-        // input.Set(data);
+        //Shareモード移行で不要に
     }
 
-    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) 
-    {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
-    }
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
 
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) 
-    {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
-    }
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
 
 
 
-    public void OnDisconnectedFromServer(NetworkRunner runner) 
-    {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
-    }
+    public void OnDisconnectedFromServer(NetworkRunner runner) { }
 
-    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) 
-    {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
-    }
+    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
 
-    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) 
-    {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
-    }
+    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
 
-    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) 
-    {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
-    }
+    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
 
-    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) 
-    {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
-    }
+    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
 
-    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) 
-    {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
-    }
+    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
 
-    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ArraySegment<byte> data) 
-    {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
-    }
+    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ArraySegment<byte> data) { }
 
     public void OnSceneLoadDone(NetworkRunner runner) 
     {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
         _isGameSceneLoaded = true;
     }
 
-    public void OnSceneLoadStart(NetworkRunner runner) 
-    {
-        Debug.Log(MethodBase.GetCurrentMethod()?.Name);
-    }
+    public void OnSceneLoadStart(NetworkRunner runner) { }
 }

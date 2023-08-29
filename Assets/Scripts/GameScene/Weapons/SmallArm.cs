@@ -28,9 +28,9 @@ public class SmallArm : Item
     private float _startReloadTime;
     private PlayerController _ownerController;
     private AudioSource _audioSource;
-    
-    
-    
+
+
+
     public void Start()
     {
         _audioSource = GetComponent<AudioSource>();
@@ -48,23 +48,30 @@ public class SmallArm : Item
     public void OnPickUp(Transform itemSlot)
     {
         transform.SetParent(itemSlot, false);
-        // PhotonView.Find((int)info.photonView.InstantiationData[0]).GetComponent<PlayerController>().text.text = "a";
         _owner = transform.root;
         _ownerController = _owner.GetComponent<PlayerController>();
         _headBone = _ownerController.headBone;
     
+        ChangeTagRPC("Weapon");
         GetComponent<CapsuleCollider>().enabled = false;
         Rb.isKinematic = true;
-        tag = "Weapon";
         IsPickUpped = true;
         transform.localPosition = Vector3.zero;
         transform.rotation = _headBone.rotation;
+    }
+    
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void ChangeTagRPC(string changeTag)
+    {
+        tag = changeTag;
+        Debug.Log(tag);
     }
 
 
     protected override void Update()
     {
         if (!IsPickUpped) base.Update();
+        _audioSource.pitch = Time.timeScale; //ゲーム終了時のスローに音を合わせる
     }
 
     public override void FixedUpdateNetwork()

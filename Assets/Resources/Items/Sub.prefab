@@ -55,8 +55,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   itemType: 0
-  fireRate: 0.07
-  damage: 1
+  fireRate: 0.075
+  damage: 2
   bulletSpeed: 200
   capacity: 30
   reloadTime: 3

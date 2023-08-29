@@ -25,6 +25,7 @@ public class PlayerController : NetworkBehaviour
     [HideInInspector] public TextMeshProUGUI ammoTMP;
     [HideInInspector] public Transform weaponImageTra;
     
+    private NetworkDataManager _networkDataManager;
     private Rigidbody _rb;
     private NetworkObject _networkObject;
     private Camera _mainCamera;
@@ -62,7 +63,6 @@ public class PlayerController : NetworkBehaviour
         
         var cameraRoot = headBone.Find("PlayerCameraRoot");
         _cineMachine.Follow = cameraRoot;
-        Debug.Log(_mainCamera);
     }
 
     private void Update()
@@ -88,9 +88,6 @@ public class PlayerController : NetworkBehaviour
             _adsTime = Runner.SimulationRenderTime;// TODO:lifeTimeに変更
         }
         
-        // MovePosition();
-        // RotateHead();
-        // WeaponControl();
         RotateHead();
     }
 
@@ -116,7 +113,6 @@ public class PlayerController : NetworkBehaviour
         Vector3 moveDirection = moveX + moveZ;
         Vector3 move = moveDirection * speed;
         
-        // Debug.Log($"datax: {data.MoveDirection.x}, dataz: {data.MoveDirection.z}, moveZ: {moveZ}, moveX: {moveX}, move: {move}");
         
         // 移動実行
         _rb.velocity = move  + new Vector3(0, _rb.velocity.y, 0);
@@ -183,21 +179,17 @@ public class PlayerController : NetworkBehaviour
     public void PickUpItem(GameObject gameObj)
     {
         NetworkObject gameObjNetworkObject = gameObj.GetComponent<NetworkObject>();
-        Debug.Log($"PickUpItemRPC/{gameObject.name}");
         switch (gameObj.GetComponent<Item>().itemType)
         {
             case Item.ItemType.Weapon:
                 if (heldItemSlot.childCount > 0 && gameObj.name == heldItemSlot.GetChild(0)?.name) // もし同じ武器を拾ったら
                 {
-                    Debug.Log("同じやつ");
                     _heldItemScript.ammo += _heldItemScript.capacity; // 1マガジン分弾薬増やす
                     Runner.Despawn(gameObjNetworkObject);
                 }
                 else // もし同じ武器ではなかったら
                 {
-                    Debug.Log("拾える");
                     if(!Input.GetKey(KeyCode.E)) return; // 拾うキーを押していなかったら何もしない
-                    Debug.Log("拾うキー");
                     
                     if (heldItemSlot.childCount > 0) Runner.Despawn(heldItemSlot.GetChild(0).GetComponent<NetworkObject>()); // 他の武器を持ってたら消す
                     // if(!gameObjNetworkObject.HasStateAuthority) gameObjNetworkObject.RequestStateAuthority();
@@ -246,17 +238,29 @@ public class PlayerController : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void GetDamageRPC(int damage)
     {
-        Debug.Log($"GetDamage: {damage}");
+        _networkDataManager ??= NetworkManager.Instance.NetworkDataManager;
         Hp -= (int)Math.Round(damage * damageFactor, MidpointRounding.AwayFromZero);
-        // if (hp <= 0) photonView.RPC(nameof(Dead), RpcTarget.All);
-        // if (hp <= 0) Dead();
         
+
+        if (Hp <= 0)
+        {
+            DeathRPC();
+            _networkDataManager.RemoveFromSurvivorsListRPC(Runner.LocalPlayer.PlayerId);
+        }
+
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void DeathRPC() //各クライアントで実行されるので演出とかにつかう
+    {
+        ShowMessage("dead");
     }
     
     
     
     private void OnCollisionStay(Collision other)
     {
+        if (!other.gameObject.tag.Contains("Ground") && !other.gameObject.tag.Contains("Untagged")) Debug.Log(other.gameObject.tag);
         if (other.gameObject.tag.Contains("Ground")) _isOnGround = true;
         if (other.gameObject.tag.Contains("Item"))
         {
