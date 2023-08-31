@@ -103,8 +103,8 @@ public class PlayerController : NetworkBehaviour
         if (!HasStateAuthority) return;
         MovePosition();
         WeaponControl();
-        
-        ShowMessage(Hp.ToString()); //Debug
+
+        _hpBar.value = Hp;
     }
     private void MovePosition()
     {
@@ -123,28 +123,14 @@ public class PlayerController : NetworkBehaviour
         
         // 移動実行
         _rb.velocity = move  + new Vector3(0, _rb.velocity.y, 0);
-        // 地面でスペースを押したらジャンプ
         
-        if (isDead)
+        // 地面でスペースを押したらジャンプ
+        if (Input.GetKey(KeyCode.Space) && _isOnGround)
         {
-            if (Input.GetKey(KeyCode.Space))
-            {
-                _rb.AddForce(new Vector3(0, jump, 0), ForceMode.VelocityChange);
-            }
-            
-            if (Input.GetKey(KeyCode.LeftShift))
-            {
-                _rb.AddForce(new Vector3(0, -jump, 0), ForceMode.VelocityChange);
-            }
+            _rb.AddForce(new Vector3(0, jump, 0), ForceMode.VelocityChange);
+            _isOnGround = false;
         }
-        else
-        {
-            if (Input.GetKey(KeyCode.Space) && _isOnGround)
-            {
-                _rb.AddForce(new Vector3(0, jump, 0), ForceMode.VelocityChange);
-                _isOnGround = false;
-            }
-        }
+        
     }
     
     private void RotateHead()
@@ -274,8 +260,10 @@ public class PlayerController : NetworkBehaviour
     private void DeathRPC() //各クライアントで実行されるので演出とかにつかう
     {
         isDead = true;
+        gameObject.layer = LayerMask.NameToLayer("Dead");
         soundManager.PlayDeadSound();
-        Instantiate(deadEffect, transform.position, Quaternion.identity);
+        Runner.Spawn(deadEffect, transform.position, Quaternion.identity, Runner.LocalPlayer);
+        Debug.Log(NetworkManager.Instance.NetworkDataManager.SurvivorsPlayerDict[NetworkManager.Instance.NetworkDataManager.Winner.PlayerId]);
     }
     
     

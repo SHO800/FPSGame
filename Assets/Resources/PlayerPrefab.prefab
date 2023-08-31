@@ -315,6 +315,7 @@ GameObject:
   - component: {fileID: 134042577676737133}
   - component: {fileID: 3018317599073139821}
   - component: {fileID: 404064854743990233}
+  - component: {fileID: 332603000781137903}
   m_Layer: 23
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -385,7 +386,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.5, y: 0.85, z: 1}
+  m_Size: {x: 2.28, y: 0.85, z: 1}
   m_Center: {x: 0, y: 0.05, z: 0}
 --- !u!65 &358350017595892394
 BoxCollider:
@@ -406,7 +407,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 0.85, z: 2.5}
+  m_Size: {x: 1, y: 0.85, z: 2.28}
   m_Center: {x: 0, y: 0.05, z: 0}
 --- !u!65 &6138377511261358947
 BoxCollider:
@@ -427,7 +428,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.8, y: 0.85, z: 1.8}
+  m_Size: {x: 1.75, y: 0.85, z: 1.75}
   m_Center: {x: 0, y: 0.05, z: 0}
 --- !u!114 &134042577676737133
 MonoBehaviour:
@@ -513,6 +514,28 @@ MonoBehaviour:
   weaponImageTra: {fileID: 0}
   soundManager: {fileID: 0}
   reloadProgressImage: {fileID: 0}
+--- !u!64 &332603000781137903
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2944135109658629309}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -864259460963330315, guid: b2129f46cbd0bb84996c22e9358cfc24, type: 3}
 --- !u!1 &3147340164614146246
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Fusion;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class NetworkDataManager : NetworkBehaviour
 {
@@ -11,8 +12,9 @@ public class NetworkDataManager : NetworkBehaviour
 
     [Networked(OnChanged = nameof(OnGameStateChanged))] public GameStates GameState { get; set; } = GameStates.Waiting;
 
-    [Networked(OnChanged = nameof(OnSurvivorsChanged)), Capacity(64)] //一応ここで64人まで対応と定めてる
-    public NetworkLinkedList<int> SurvivorsPlayerIds { get; } = new NetworkLinkedList<int>();
+    [Networked(OnChanged = nameof(OnSurvivorsChanged)), Capacity(8)]
+    public NetworkDictionary<int, NetworkString<_32>>  SurvivorsPlayerDict { get; }
+    
     [Networked] public PlayerRef Winner { get; set; } = PlayerRef.None;
 
     public override void Spawned()
@@ -22,26 +24,16 @@ public class NetworkDataManager : NetworkBehaviour
     
     public static void OnGameStateChanged(Changed<NetworkDataManager> changed)
     { 
-        if (changed.Behaviour.GameState == GameStates.InGame)
-        {
-            if (changed.Behaviour.Object.HasStateAuthority)
-            {
-                // ゲーム開始時点での生存者をidで保存しておく
-                // 勝者取得など、生存者を取得する場合はActivePlayersからidを使って取得する
-                foreach (var player in changed.Behaviour.Runner.ActivePlayers)
-                {
-                    changed.Behaviour.SurvivorsPlayerIds.Add(player.PlayerId);
-                }
-            }  
-        }
+
     }
+    
 
     public static void OnSurvivorsChanged(Changed<NetworkDataManager> changed)
     {
-        if(changed.Behaviour.SurvivorsPlayerIds.Count == 1) //終了処理
+        if(changed.Behaviour.SurvivorsPlayerDict.Count == 1) //終了処理
         {
             changed.Behaviour.GameState = GameStates.Finished;
-            changed.Behaviour.Winner = changed.Behaviour.SurvivorsPlayerIds[0];
+            changed.Behaviour.Winner = changed.Behaviour.SurvivorsPlayerDict.First().Key;
             changed.Behaviour.GameOver();
         }
     }
@@ -64,8 +56,14 @@ public class NetworkDataManager : NetworkBehaviour
     }
     
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void AddToSurvivorsListRPC(int playerId, string nickName)
+    {
+        SurvivorsPlayerDict.Add(playerId, nickName);
+    }
+    
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     public void RemoveFromSurvivorsListRPC(int playerId)
     {
-        SurvivorsPlayerIds.Remove(playerId);
+        SurvivorsPlayerDict.Remove(playerId);
     } 
 }

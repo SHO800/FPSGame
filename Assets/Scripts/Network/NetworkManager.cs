@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Fusion;
+using Fusion.Editor;
 using Fusion.Sockets;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
@@ -28,7 +29,7 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
 
     private bool _isInitialized; // ゲームを開始したマスターでのみ有効化される TODO:マスターが変わったときのために_isInitializedはすべてのクライアントで有効にしておき、IsMaster的なのでスポーンするクライアントを変更するべきな気がする
     
-    public NetworkDataManager NetworkDataManager{private set; get;}
+    public NetworkDataManager NetworkDataManager {private set; get;}
     [HideInInspector]public Transform marker1;
     [HideInInspector]public Transform marker2;
     public float spawnTime;
@@ -41,7 +42,7 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     private static float _spawnTimer;
     private bool _isGameSceneLoaded;
 
-    
+
     private void Awake()
     {
         Instance = this;
@@ -72,11 +73,13 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         _mouseButton0 = _mouseButton0 || Input.GetMouseButton(0);
         _mouseButton1 = _mouseButton1 || Input.GetMouseButton(1);
         
+        if (_runner.IsConnectedToServer) NetworkDataManager ??= GameObject.Find("NetworkDataManager(Clone)")?.GetComponent<NetworkDataManager>();
         if(!_runner.IsSharedModeMasterClient) return;
         if (Input.GetKeyDown(KeyCode.Return) && !_isInitialized)
         {
             StartGame();
         }
+        
     }
     public override void FixedUpdateNetwork()
     {
@@ -168,22 +171,21 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         //入ったのが自分だったときの処理だけ
+        if (player != Runner.LocalPlayer) return;
         
         if (Runner.IsSharedModeMasterClient) // もし自分がマスターなら(すなわち自分が最初に入ったプレイヤーなら)
         {
             StartCoroutine(SpawnNetworkDataManager(player));
         }
 
-        if (player != Runner.LocalPlayer) return; // 自分以外は無視
         StartCoroutine(SpawnPlayer(player));
-
-        // Debug用に一人入ったらもうゲーム開始にする
     }
+    
     
     private IEnumerator SpawnNetworkDataManager(PlayerRef player)
     {
         yield return new WaitUntil(() => _isGameSceneLoaded);
-        NetworkDataManager = Runner.Spawn(networkDataManagerPrefab, Vector3.zero, Quaternion.identity, player, (r, o) => { o.name = "NetworkDataManager";}).GetComponent<NetworkDataManager>(); // NetworkDataManagerを出しとく
+        NetworkDataManager = Runner.Spawn(networkDataManagerPrefab, Vector3.zero, Quaternion.identity).GetComponent<NetworkDataManager>(); // NetworkDataManagerを出しとく
     }
     
     private IEnumerator SpawnPlayer(PlayerRef player)
@@ -204,12 +206,22 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         var blind = GameObject.Find("Blind");
         if (blind is null) Debug.LogAssertion("Blindが見つかりませんでした");
         else blind.GetComponent<Blind>().FadeOut(); // 画面を徐々に表示する
+        
+        StartCoroutine(SetNickNameToNetworkDataManager());
+    }
+    private IEnumerator SetNickNameToNetworkDataManager()
+    {
+        yield return new WaitUntil(() => NetworkDataManager is not null);
+        NetworkDataManager.AddToSurvivorsListRPC(Runner.LocalPlayer.PlayerId, nickName);
     }
 
     private void StartGame()
     {
-        NetworkDataManager.GameState = GameStates.InGame; 
+        if (NetworkDataManager.SurvivorsPlayerDict.Count <= 1) return;
+        
+        NetworkDataManager.GameState = GameStates.InGame;
         if (_isInitialized) return;
+        _runner.SessionInfo.IsVisible = false; // ルームを非表示にする
         marker1 = GameObject.Find("Marker1").transform;
         marker2 = GameObject.Find("Marker2").transform;
         _spawnTimer = 0;
@@ -219,12 +231,8 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) 
     {
         // TODO: 退出時にNetworkDataManagerの権限委譲とか色々
+        if(NetworkDataManager.SurvivorsPlayerDict.ContainsKey(player.PlayerId)) NetworkDataManager.SurvivorsPlayerDict.Remove(player.PlayerId);
         
-        // if (_spawnedCharacters.TryGetValue(player, out NetworkObject networkObject))
-        // {
-        //     runner.Despawn(networkObject);
-        //     _spawnedCharacters.Remove(player);
-        // }
     }
     
     public void OnInput(NetworkRunner runner, NetworkInput input)

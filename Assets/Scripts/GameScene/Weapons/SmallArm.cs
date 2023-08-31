@@ -90,7 +90,7 @@ public class SmallArm : Item
         {   // インターバルがなくなったので撃つ
             Interval = TickTimer.CreateFromSeconds(Runner, fireRate); // インターバル設定
 
-            NetworkObject bullet = Runner.Spawn(bulletObject, _headBone.position + _headBone.forward, _headBone.rotation, null,
+            NetworkObject bullet = Runner.Spawn(bulletObject, _headBone.position + _headBone.forward, _headBone.rotation, Runner.LocalPlayer,
                 (runner, o) => { o.GetComponent<NormalBullet>().Init(_ownerController, damage);}); // 弾スポーン
             bullet.gameObject.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
 

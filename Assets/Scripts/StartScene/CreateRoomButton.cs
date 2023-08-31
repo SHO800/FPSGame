@@ -62,29 +62,9 @@ public class CreateRoomButton : MonoBehaviour
         _roomName = _roomName.Replace("　", "_"); // 全角
         
         
-        NetworkManager.Instance.CreateSession(_roomName, 4);
+        NetworkManager.Instance.CreateSession(_roomName, 8);
     }
 
-
-    // private void RoomCreate(){
-    //     _roomName = _roomName.Replace(" ", "_"); // 半角
-    //     _roomName = _roomName.Replace("　", "_"); // 全角
-    //
-    //     //カスタムプロパティを設定 
-    //     var customProperties = new Hashtable();
-    //     customProperties["RoomName"] = _roomName;
-    //
-    //     //ルームの設定
-    //     var roomOptions = new RoomOptions();
-    //     roomOptions.MaxPlayers = 4;
-    //     roomOptions.CustomRoomProperties = customProperties;
-    //     roomOptions.CustomRoomPropertiesForLobby = new[] {"RoomName"};
-    //
-    //     GameManager.RoomOptions = roomOptions;
-    //     GameManager.RoomName = "";
-    //     SceneManager.LoadScene("GameScene", LoadSceneMode.Single);
-    //     
-    // }
     
     public void OnClick()
     {

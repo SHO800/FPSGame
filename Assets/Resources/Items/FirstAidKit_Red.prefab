@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4417696296585121879}
   - component: {fileID: 8590482058879652447}
   - component: {fileID: 3615389730474610763}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: -2768466467274436732}
   - component: {fileID: 6745292354807448796}
   - component: {fileID: 5268173005141569200}
-  m_Layer: 0
+  m_Layer: 20
   m_Name: FirstAidKit_Red
   m_TagString: Untagged
   m_Icon: {fileID: 0}

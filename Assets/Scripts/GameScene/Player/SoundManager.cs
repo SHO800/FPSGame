@@ -21,28 +21,24 @@ public class SoundManager : MonoBehaviour
     
     public void PlayReloadStartSound()
     {
-        Debug.Log("PlayReloadStartSound");
         _audioSource.volume = volume;
         _audioSource.PlayOneShot(reloadStartSound);
     }
     
     public void PlayReloadEndSound()
     {
-        Debug.Log("PlayReloadEndSound");
         _audioSource.volume = volume;
         _audioSource.PlayOneShot(reloadEndSound);
     }
     
     public void PlayPickupGunSound()
     {
-        Debug.Log("PlayPickupGunSound");
         _audioSource.volume = volume;
         _audioSource.PlayOneShot(pickupGunSound);
     }
     
     public void PlayPickupAmmoSound()
     {
-        Debug.Log("PlayPickupAmmoSound");
         _audioSource.volume = volume;
         _audioSource.PlayOneShot(pickupAmmoSound);
     }
@@ -55,21 +51,18 @@ public class SoundManager : MonoBehaviour
     
     public void PlayHealSound()
     {
-        Debug.Log("PlayHealSound");
         _audioSource.volume = volume;
         _audioSource.PlayOneShot(healSound);
     }
     
     public void PlayDeadSound()
     {
-        Debug.Log("PlayDeadSound");
         _audioSource.volume = volume;
         _audioSource.PlayOneShot(deadSound);
     }
     
     public void PlayHitSound()
     {
-        Debug.Log("PlayHitSound");
         _audioSource.volume = volume;
         _audioSource.PlayOneShot(hitSound);
     }
