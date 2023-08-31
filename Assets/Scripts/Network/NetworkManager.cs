@@ -57,15 +57,6 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         
         
         await _runner.JoinSessionLobby(SessionLobby.ClientServer); // ロビー参加
-        
-        //Debugging TODO: StartSceneを飛ばしている
-        // await _runner.StartGame(new StartGameArgs()
-        // {
-        //     SessionName = "test",
-        //     GameMode = GameMode.Shared,
-        //     Scene = SceneManager.GetActiveScene().buildIndex + 1,
-        //     SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
-        // });
     }
 
     private void Update()
@@ -193,9 +184,13 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         
         yield return new WaitUntil(() => _isGameSceneLoaded); //ロードが終わるまで待つ
         
+        marker1 = GameObject.Find("Marker1").transform;
+        marker2 = GameObject.Find("Marker2").transform;
+        
         // 各プレイヤー固有の座標を生成
-        Vector3 spawnPosition = new Vector3((player.RawEncoded % Runner.Config.Simulation.DefaultPlayers) * 3, 1, 0);
-        NetworkObject networkPlayerObject = Runner.Spawn(playerPrefab, spawnPosition, Quaternion.identity, player);
+        // Vector3 spawnPosition = new Vector3((player.RawEncoded % Runner.Config.Simulation.DefaultPlayers) * 3, 1, 0);
+        
+        NetworkObject networkPlayerObject = Runner.Spawn(playerPrefab, GenerateRandomSpawnPos(), Quaternion.identity, player);
         
         //networkPlayerObjectの名前をPlayer(Clone)からPlayer1,2,3...に変更
         networkPlayerObject.gameObject.name = $"Player{player.RawEncoded}";
@@ -205,7 +200,7 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
 
         var blind = GameObject.Find("Blind");
         if (blind is null) Debug.LogAssertion("Blindが見つかりませんでした");
-        else blind.GetComponent<Blind>().FadeOut(); // 画面を徐々に表示する
+        else blind.GetComponent<Blind>().SlideOut(); // 画面を表示する
         
         StartCoroutine(SetNickNameToNetworkDataManager());
     }
@@ -222,8 +217,6 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         NetworkDataManager.GameState = GameStates.InGame;
         if (_isInitialized) return;
         _runner.SessionInfo.IsVisible = false; // ルームを非表示にする
-        marker1 = GameObject.Find("Marker1").transform;
-        marker2 = GameObject.Find("Marker2").transform;
         _spawnTimer = 0;
         _isInitialized = true;
     }
@@ -231,7 +224,7 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) 
     {
         // TODO: 退出時にNetworkDataManagerの権限委譲とか色々
-        if(NetworkDataManager.SurvivorsPlayerDict.ContainsKey(player.PlayerId)) NetworkDataManager.SurvivorsPlayerDict.Remove(player.PlayerId);
+        if(NetworkDataManager.SurvivorsPlayerDict.ContainsKey(player.PlayerId)) NetworkDataManager.RemoveFromSurvivorsListRPC(player.PlayerId);
         
     }
     

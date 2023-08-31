@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2689821245971308441}
   - component: {fileID: 6198031588055214507}
   - component: {fileID: 243299966272952368}
-  - component: {fileID: 4122361793514896274}
+  - component: {fileID: 7328798178787515970}
   m_Layer: 31
   m_Name: Sub
   m_TagString: Untagged
@@ -131,7 +131,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: 2203773368e4340d98c114f55c2dd7fd, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.3
-  m_Pitch: 1
+  m_Pitch: 1.2
   Loop: 0
   Mute: 0
   Spatialize: 0
@@ -242,7 +242,7 @@ MonoBehaviour:
     RotTeleportRadians: 1.5
   UseLegacySharedModeInterpolation: 0
   TargetInterpolationDelay: 0.03
---- !u!114 &4122361793514896274
+--- !u!114 &7328798178787515970
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -256,12 +256,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ObjectInterest: 1
   DefaultInterestGroups: []
-  DestroyWhenStateAuthorityLeaves: 1
+  DestroyWhenStateAuthorityLeaves: 0
   AllowStateAuthorityOverride: 1
   AoiPositionSource: {fileID: 0}
   Flags: 2305
   NetworkGuid:
-    RawGuidValue: b547b11f7c9ce9444a7ab547aa7f4040
+    RawGuidValue: 4144975a5e97d9f4ea872217b9382378
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 5145454767830735666}

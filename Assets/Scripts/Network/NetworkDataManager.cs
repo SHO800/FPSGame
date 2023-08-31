@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Fusion;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using System.Linq;
 
 public class NetworkDataManager : NetworkBehaviour
@@ -18,9 +17,7 @@ public class NetworkDataManager : NetworkBehaviour
     [Networked] public PlayerRef Winner { get; set; } = PlayerRef.None;
 
     public override void Spawned()
-    {
-        Debug.Log($"NetworkDataManager Spawned {SceneManager.GetActiveScene().name}");
-    }
+    { }
     
     public static void OnGameStateChanged(Changed<NetworkDataManager> changed)
     { 
@@ -30,18 +27,23 @@ public class NetworkDataManager : NetworkBehaviour
 
     public static void OnSurvivorsChanged(Changed<NetworkDataManager> changed)
     {
-        if(changed.Behaviour.SurvivorsPlayerDict.Count == 1) //終了処理
+        // if(!changed.Behaviour.HasStateAuthority) return;
+        if(changed.Behaviour.GameState == GameStates.InGame && changed.Behaviour.SurvivorsPlayerDict.Count == 1) //終了処理
         {
             changed.Behaviour.GameState = GameStates.Finished;
             changed.Behaviour.Winner = changed.Behaviour.SurvivorsPlayerDict.First().Key;
-            changed.Behaviour.GameOver();
+            changed.Behaviour.GameOverRPC();
         }
     }
     
-    private void GameOver()
-    {
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    private void GameOverRPC()
+    { 
         GameSlowlyEffect();
-        // ここにゲーム終了演出
+        
+        var networkDataManager = NetworkManager.Instance.NetworkDataManager;
+        var winner = networkDataManager.SurvivorsPlayerDict[networkDataManager.Winner.PlayerId].ToString();
+        GameObject.Find("Blind").GetComponent<Blind>().SlideIn(winner);
     }
 
     private async void GameSlowlyEffect()

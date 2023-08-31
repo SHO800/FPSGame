@@ -58,7 +58,7 @@ MonoBehaviour:
   fireRate: 0.15
   damage: 4
   bulletSpeed: 200
-  capacity: 30
+  capacity: 25
   reloadTime: 4
   bulletObject: {fileID: 2198387763713374461, guid: 2462aa49a5a74424881d14675b3253fd,
     type: 3}

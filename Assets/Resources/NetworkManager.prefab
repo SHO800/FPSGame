@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5469913760508927659
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1683665464849855018}
+  - component: {fileID: 7156758569833636423}
+  - component: {fileID: 3542728512816520802}
+  m_Layer: 0
+  m_Name: NetworkManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1683665464849855018
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5469913760508927659}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7156758569833636423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5469913760508927659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18d38573e195c8e4dae1c447babb24b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  nickName: 
+  roomSelectorInstance: {fileID: 0}
+  networkDataManagerPrefab: {fileID: 8216631780973751129, guid: 3c76ed923892e6f4c9288b2703114410,
+    type: 3}
+  playerPrefab:
+    RawGuidValue: 9840263d8edde9742b9b12cd66df174a
+  marker1: {fileID: 0}
+  marker2: {fileID: 0}
+  spawnTime: 5
+  spawnItems:
+  - {fileID: 8198909352693198359, guid: 652cdc835441e5043a8174fa78b0a758, type: 3}
+  - {fileID: 8198909352693198359, guid: ca1360beda178344b9e74d71bebcf998, type: 3}
+  - {fileID: 911385219652104893, guid: 961d4411fc931a7489e92471e43a9026, type: 3}
+  - {fileID: 911385219652104893, guid: 4144975a5e97d9f4ea872217b9382378, type: 3}
+  - {fileID: 911385219652104893, guid: b547b11f7c9ce9444a7ab547aa7f4040, type: 3}
+  spawnChance: 0f0000000a000000140000001400000023000000
+--- !u!114 &3542728512816520802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5469913760508927659}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObjectInterest: 1
+  DefaultInterestGroups: []
+  DestroyWhenStateAuthorityLeaves: 0
+  AllowStateAuthorityOverride: 1
+  AoiPositionSource: {fileID: 0}
+  Flags: 2305
+  NetworkGuid:
+    RawGuidValue: f215c7676b8dae445a411fad98fbd48b
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 7156758569833636423}
+  SimulationBehaviours: []

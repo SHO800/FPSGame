@@ -262,8 +262,8 @@ public class PlayerController : NetworkBehaviour
         isDead = true;
         gameObject.layer = LayerMask.NameToLayer("Dead");
         soundManager.PlayDeadSound();
+        transform.Find("Player/Model").gameObject.SetActive(false);
         Runner.Spawn(deadEffect, transform.position, Quaternion.identity, Runner.LocalPlayer);
-        Debug.Log(NetworkManager.Instance.NetworkDataManager.SurvivorsPlayerDict[NetworkManager.Instance.NetworkDataManager.Winner.PlayerId]);
     }
     
     

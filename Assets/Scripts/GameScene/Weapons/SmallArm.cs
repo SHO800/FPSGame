@@ -65,7 +65,6 @@ public class SmallArm : Item
     private void ChangeTagRPC(string changeTag)
     {
         tag = changeTag;
-        Debug.Log(tag);
     }
 
 
