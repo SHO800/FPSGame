@@ -62,6 +62,8 @@ MonoBehaviour:
   reloadTime: 3
   bulletObject: {fileID: 2198387763713374461, guid: 2462aa49a5a74424881d14675b3253fd,
     type: 3}
+  adsMagnification: 100
+  audioPitch: 1.2
   ammo: 0
   isReloading: 0
   _AmmoInMagazine: 0

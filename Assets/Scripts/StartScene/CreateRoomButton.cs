@@ -2,8 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.SceneManagement;
-using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class CreateRoomButton : MonoBehaviour
 {
@@ -18,6 +16,7 @@ public class CreateRoomButton : MonoBehaviour
     private Vector2 _canvasSize;
     private float _elapsedTime;
     private string _roomName;
+    private Image _loading;
     
     private bool _isWindowsMoving;
 
@@ -25,9 +24,11 @@ public class CreateRoomButton : MonoBehaviour
     {
         _button = GetComponent<Button>();
         _text = transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>();
-        
+
         _canvasSize = windows.transform.parent.GetComponent<RectTransform>().sizeDelta;
         _normalPosition.y = windows.transform.localPosition.y; 
+        
+        _loading = GameObject.Find("Loading").GetComponent<Image>();
     }
 
     private void Update(){
@@ -50,6 +51,8 @@ public class CreateRoomButton : MonoBehaviour
             windows.transform.localPosition.x,
             Mathf.SmoothStep(_normalPosition.y, -_canvasSize.y, duration)
         );
+        _loading.enabled = true;
+
 
         if (duration < 1f) return;
         _isWindowsMoving = false;

@@ -4,34 +4,25 @@ using UnityEngine;
 
 public class NormalBullet : NetworkBehaviour
 {
-    public int damage;
+    [HideInInspector] public int damage;
+    [HideInInspector] public PlayerController owner;
+    [SerializeField] private GameObject hitEffect;
     [Networked] private TickTimer Life { get; set; }
 
-    public void Init()
+    public void Init(PlayerController owner, int damage)
     {
+        this.owner = owner;
+        this.damage = damage;
         Life = TickTimer.CreateFromSeconds(Runner, 5.0f);
-        Debug.Log("Init in bullet" + Object.HasStateAuthority);
     }
 
-    public override void Spawned()
-    {
-        Debug.Log("Spawned in bullet");    
-    }
-
-    private void Update()
-    {
-        Debug.Log("Update in bullet" + Object.HasStateAuthority);
-    }
-    
     public override void FixedUpdateNetwork()
     {
         if(!HasStateAuthority) return;
         
-        Debug.Log("FixedUpdateNetwork in bullet");
         
         if (transform.position.y < -100 || Life.Expired(Runner))
         {
-            Debug.Log("Despawn in FixedUpdateNetwork");
             Runner.Despawn(Object);
         }
     }
@@ -40,15 +31,20 @@ public class NormalBullet : NetworkBehaviour
     // Enterだと貫通することがあるのでStayにしてる
     private void OnCollisionStay(Collision other)
     {
+        Instantiate(hitEffect, transform.position, Quaternion.LookRotation(other.contacts[0].normal)); // 何かにぶつかったら着弾エフェクト
+        
         if(!HasStateAuthority) return;
         
-        Debug.Log("collision in bullet");
-        
-        if (other.gameObject.tag.Contains("Player"))
+        if (other.gameObject.tag.Contains("Player")) //敵にヒットしたとき
         {
-            other.gameObject.GetComponent<PlayerController>().GetDamageRPC(damage);
+            other.gameObject.GetComponent<PlayerController>().GetDamageRPC(damage); // ダメージを与える
+            owner.ShowHitEffect();
         }
-        if (Object is not null) Runner.Despawn(Object);
+
+        if (Object is not null)
+        {
+            Runner.Despawn(Object);
+        }
     }
 
     

@@ -38,14 +38,14 @@ TagManager:
   - 
   - MovableObject
   - Ragdoll
-  - RemotePlayer
+  - Player
   - Bullet
   - Enemy
   - Pickup
   - Trigger
   - MovingPlatform
   - Debris
-  - LocalPlayer
+  - Dead
   - Weapon
   m_SortingLayers:
   - name: Default

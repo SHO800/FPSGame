@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 248502acd3e786d4aa4d4de763eb2f4d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - reloadStartSound: {fileID: 8300000, guid: f7e7ad57923a4834cbfa0a86bb6d0f1d, type: 3}
+  - reloadEndSound: {fileID: 8300000, guid: 8e81c5c16e803444f9a99b9696285749, type: 3}
+  - pickupGunSound: {fileID: 8300000, guid: 9d03f674f9bf99d4d8c098e529e4ebd3, type: 3}
+  - pickupAmmoSound: {fileID: 8300000, guid: 560d74649e2e84b439efcfd17cd5206b, type: 3}
+  - getDamageSound: {fileID: 8300000, guid: da487bbdfc778f74996fbbc0972106c7, type: 3}
+  - healSound: {fileID: 8300000, guid: 3cacc06625fc9c44fa3d10d779cccb5f, type: 3}
+  - deadSound: {fileID: 8300000, guid: c0ea23eae770c1f4e861ecdfe98235fb, type: 3}
+  - hitSound: {fileID: 8300000, guid: aef3e67cc3969b04ab8775e79a9ed84c, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

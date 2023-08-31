@@ -9,6 +9,8 @@ public class SmallArm : Item
     public int capacity;
     public float reloadTime;
     public GameObject bulletObject;
+    public float adsMagnification = 100;
+    public float audioPitch = 1;
     // 発射する弾のオブジェクトに着弾時の効果とか仕込もう
     
     [HideInInspector] public int ammo;
@@ -20,7 +22,6 @@ public class SmallArm : Item
     [Networked] private bool IsPickUpped { get; set; }
     
     private bool _isShooting;
-    // private Rigidbody _rb;
     private Transform _owner;
     private Transform _muzzle;
     private ParticleSystem _muzzleFlash;
@@ -71,7 +72,7 @@ public class SmallArm : Item
     protected override void Update()
     {
         if (!IsPickUpped) base.Update();
-        _audioSource.pitch = Time.timeScale; //ゲーム終了時のスローに音を合わせる
+        _audioSource.pitch = audioPitch * Time.timeScale; //ゲーム終了時のスローに音を合わせる
     }
 
     public override void FixedUpdateNetwork()
@@ -90,10 +91,9 @@ public class SmallArm : Item
             Interval = TickTimer.CreateFromSeconds(Runner, fireRate); // インターバル設定
 
             NetworkObject bullet = Runner.Spawn(bulletObject, _headBone.position + _headBone.forward, _headBone.rotation, null,
-                (runner, o) => { o.GetComponent<NormalBullet>().Init();}); // 弾スポーン
+                (runner, o) => { o.GetComponent<NormalBullet>().Init(_ownerController, damage);}); // 弾スポーン
             bullet.gameObject.GetComponent<Rigidbody>().AddForce(bullet.transform.forward * bulletSpeed, ForceMode.VelocityChange); // 弾加速
-            bullet.gameObject.GetComponent<NormalBullet>().damage = damage;
-            
+
             DoEffectRPC();
             AmmoInMagazine--;
         }
@@ -103,19 +103,22 @@ public class SmallArm : Item
             
         if (isReloading)
         {
-            _ownerController.weaponImageTra.eulerAngles = new Vector3(0, 0, (Runner.SimulationRenderTime - _startReloadTime) / reloadTime * -360);
+            
+            _ownerController.reloadProgressImage.enabled = true;
+            _ownerController.reloadProgressImage.fillAmount = (Runner.SimulationRenderTime - _startReloadTime) / reloadTime;
             _ownerController.weaponImageTra.localScale = new Vector3(0.1f, 0.1f, 0.1f);
         }
         else
         {
-            _ownerController.weaponImageTra.eulerAngles = new Vector3(0, 0, 0);
-            _ownerController.weaponImageTra.localScale = new Vector3(0.2f, 0.2f, 0.1f);
+            _ownerController.reloadProgressImage.enabled = false;
+            _ownerController.weaponImageTra.localScale = new Vector3(0.15f, 0.15f, 0.1f);
                 
         }
         if (isReloading && (Runner.SimulationRenderTime - _startReloadTime) >= reloadTime) //リロード終了時
         {
             isReloading = false;
-                
+            PlayReloadEndSound();
+            
             int amount = ammo >= capacity - AmmoInMagazine ? capacity - AmmoInMagazine : ammo;; // 予備弾薬が装填する数より多ければマガジンいっぱい、でなければ予備弾薬ぜんぶ
             AmmoInMagazine += amount; // 予備弾薬が1マガジン分以上あるならその分装填、無いならあるだけ装填
             ammo -= amount;
@@ -132,8 +135,19 @@ public class SmallArm : Item
 
     public void Reload()
     {
-        if (ammo <= 0) return; // 予備弾薬がなければ無理
+        if (ammo <= 0 || AmmoInMagazine == capacity) return; // 予備弾薬がなければ無理
         isReloading = true;
+        PlayReloadStartSound();
         _startReloadTime = Runner.SimulationRenderTime;
+    }
+    
+    private void PlayReloadStartSound()
+    {
+        _ownerController.soundManager.PlayReloadStartSound();
+    }
+    
+    private void PlayReloadEndSound()
+    {
+        _ownerController.soundManager.PlayReloadEndSound();
     }
 }

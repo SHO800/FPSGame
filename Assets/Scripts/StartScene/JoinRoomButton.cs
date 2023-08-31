@@ -14,6 +14,7 @@ public class JoinRoomButton : MonoBehaviour
     private Vector2 _normalPosition;
     private Vector2 _canvasSize;
     private float _elapsedTime;
+    private Image _loading;
     
     private bool _isWindowsMoving;
 
@@ -24,6 +25,8 @@ public class JoinRoomButton : MonoBehaviour
         
         _canvasSize = windows.transform.parent.GetComponent<RectTransform>().sizeDelta;
         _normalPosition.y = windows.transform.localPosition.y; 
+        
+        _loading = GameObject.Find("Loading").GetComponent<Image>();
     }
 
     private void Update(){
@@ -43,6 +46,7 @@ public class JoinRoomButton : MonoBehaviour
             windows.transform.localPosition.x,
             Mathf.SmoothStep(_normalPosition.y, -_canvasSize.y, duration)
             );
+        _loading.enabled = true;
 
         if (duration < 1f) return;
         _isWindowsMoving = false;

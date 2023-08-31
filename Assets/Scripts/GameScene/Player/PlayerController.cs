@@ -1,8 +1,8 @@
 using System;
+using System.Threading.Tasks;
 using Cinemachine;
 using Fusion;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,6 +14,7 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private float normalSpeed = 3.0f;
     [SerializeField] private float sprintSpeed = 10.0f;
     [SerializeField] private float jump = 1f;
+    [SerializeField] private GameObject deadEffect;
     
     [HideInInspector] public Transform heldItemSlot;
     [HideInInspector, Networked] public int Hp { set; get; } = 100;
@@ -24,6 +25,8 @@ public class PlayerController : NetworkBehaviour
     [HideInInspector] public GameObject weaponDataUI;
     [HideInInspector] public TextMeshProUGUI ammoTMP;
     [HideInInspector] public Transform weaponImageTra;
+    [HideInInspector] public SoundManager soundManager;
+    [HideInInspector] public Image reloadProgressImage;
     
     private NetworkDataManager _networkDataManager;
     private Rigidbody _rb;
@@ -38,15 +41,18 @@ public class PlayerController : NetworkBehaviour
     private TextMeshPro _playerNameTMP;
     private TextMeshProUGUI _messageTMP;
     private Slider _hpBar;
+    private Transform _reticle;
     
 
     private void Start()
     {
-        headBone = transform.Find("Avatar/Root/Hips/Spine/Spine1/Neck/Head");
-        heldItemSlot = headBone.Find("HeldItemSlot");
+        headBone = transform.Find("Player/Head");
+        heldItemSlot = transform.Find("Player/ItemSlot");
         weaponDataUI = GameObject.Find("WeaponData");
         ammoTMP = weaponDataUI.transform.Find("Ammo").GetComponent<TextMeshProUGUI>();
         weaponImageTra = weaponDataUI.transform.Find("WeaponImage");
+        reloadProgressImage = weaponDataUI.transform.Find("Progress").GetComponent<Image>();
+        soundManager = transform.Find("SoundManager").GetComponent<SoundManager>();
         
         _networkObject = GetComponent<NetworkObject>();
         _rb = GetComponent<Rigidbody>();
@@ -54,7 +60,8 @@ public class PlayerController : NetworkBehaviour
         _mainCamera = Camera.main;
         _hpBar = GameObject.Find("HPBar").GetComponent<Slider>();
         _messageTMP = GameObject.Find("MessageText").GetComponent<TextMeshProUGUI>(); // それぞれの画面のオブジェクトがそれぞれ実行するのでそれぞれの画面に表示される
-        _playerNameTMP = transform.Find("PlayerName").GetComponent<TextMeshPro>();
+        _playerNameTMP = transform.Find("Player/PlayerName").GetComponent<TextMeshPro>();
+        _reticle = GameObject.Find("Reticle").transform;
         
         if (!_networkObject.HasStateAuthority) return;
         // マウスカーソルを捕まえる
@@ -77,14 +84,14 @@ public class PlayerController : NetworkBehaviour
         if (Input.GetMouseButtonDown(1))
         {
             isAds = true;
-            heldItemSlot.localPosition = new Vector3(0, -0.15f, 0.5f);
+            // heldItemSlot.localPosition = new Vector3(0, -0.15f, 0.5f);
             _adsTime = Runner.SimulationRenderTime; // TODO:lifeTimeに変更
         }
         
         if (Input.GetMouseButtonUp(1))
         {
             isAds = false; 
-            heldItemSlot.localPosition = new Vector3(0.3f, -0.3f, 0.5f);
+            // heldItemSlot.localPosition = new Vector3(0.3f, -0.3f, 0.5f);
             _adsTime = Runner.SimulationRenderTime;// TODO:lifeTimeに変更
         }
         
@@ -155,6 +162,8 @@ public class PlayerController : NetworkBehaviour
                     0
                 ), Space.Self);
         }
+
+        heldItemSlot.rotation = headBone.rotation; // 武器も上下
     }
     
     private void WeaponControl()
@@ -170,7 +179,7 @@ public class PlayerController : NetworkBehaviour
         if (Runner.SimulationRenderTime - _adsTime < 0.1)
         {
             _cineMachine.m_Lens.FieldOfView =
-                isAds ? 40 - (Runner.SimulationRenderTime - _adsTime) * 100 : 30 + (Runner.SimulationRenderTime - _adsTime) * 100;// TODO:lifeTimeに変更する
+                isAds ? 40 - (Runner.SimulationRenderTime - _adsTime) * _heldItemScript.adsMagnification : 30 + (Runner.SimulationRenderTime - _adsTime) * _heldItemScript.adsMagnification;// TODO:lifeTimeに変更する
         }
         
         // _heldItemScript.AsWeapon();
@@ -185,6 +194,7 @@ public class PlayerController : NetworkBehaviour
                 if (heldItemSlot.childCount > 0 && gameObj.name == heldItemSlot.GetChild(0)?.name) // もし同じ武器を拾ったら
                 {
                     _heldItemScript.ammo += _heldItemScript.capacity; // 1マガジン分弾薬増やす
+                    soundManager.PlayPickupAmmoSound();
                     Runner.Despawn(gameObjNetworkObject);
                 }
                 else // もし同じ武器ではなかったら
@@ -195,15 +205,21 @@ public class PlayerController : NetworkBehaviour
                     // if(!gameObjNetworkObject.HasStateAuthority) gameObjNetworkObject.RequestStateAuthority();
                     _heldItemScript = gameObjNetworkObject.GetComponent<SmallArm>();
                     _heldItemScript.OnPickUp(heldItemSlot);
+                    soundManager.PlayPickupGunSound();
                     weaponDataUI.transform.localScale = Vector3.one;
-                    weaponImageTra.GetComponent<RawImage>().texture = (Texture)Resources.Load($"Images/Item/{gameObj.name.Replace("(Clone)", "")}");
+                    
+                    RawImage weaponImage = weaponImageTra.GetComponent<RawImage>();
+                    if (!weaponImage.enabled) weaponImage.enabled = true;
+                    weaponImage.texture = (Texture)Resources.Load($"Images/Item/{gameObj.name.Replace("(Clone)", "")}");
                 }
                 
                 break;
             case Item.ItemType.AidKit:
                 int healAmount = gameObj.GetComponent<AidKit>().healAmount;
                 Hp = Hp + healAmount > 100 ? 100 : Hp + healAmount;
+                soundManager.PlayHealSound();
                 Runner.Despawn(gameObjNetworkObject);
+                
                 break;
         }
         
@@ -247,25 +263,38 @@ public class PlayerController : NetworkBehaviour
             DeathRPC();
             _networkDataManager.RemoveFromSurvivorsListRPC(Runner.LocalPlayer.PlayerId);
         }
+        else
+        {
+            soundManager.PlayGetDamageSound();
+        }
 
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void DeathRPC() //各クライアントで実行されるので演出とかにつかう
     {
-        ShowMessage("dead");
+        isDead = true;
+        soundManager.PlayDeadSound();
+        Instantiate(deadEffect, transform.position, Quaternion.identity);
     }
     
+    
+    public async void ShowHitEffect()
+    {
+        _reticle.localScale = new Vector3(0.75f, 0.75f, 0.75f);
+        soundManager.PlayHitSound();
+        await Task.Delay(100);
+        _reticle.localScale = new Vector3(1, 1, 1);
+    }
     
     
     private void OnCollisionStay(Collision other)
     {
-        if (!other.gameObject.tag.Contains("Ground") && !other.gameObject.tag.Contains("Untagged")) Debug.Log(other.gameObject.tag);
         if (other.gameObject.tag.Contains("Ground")) _isOnGround = true;
         if (other.gameObject.tag.Contains("Item"))
         {
             var netObj = other.gameObject.GetComponent<NetworkObject>();
-            if (heldItemSlot.childCount > 0 && other.gameObject.name == heldItemSlot.GetChild(0)?.name || Input.GetKey(KeyCode.E) ||  other.gameObject.TryGetComponent(out AidKit aidKit)) // 仮置きでPickUpItemと同じ条件も使う
+            if (heldItemSlot.childCount > 0 && other.gameObject.name == heldItemSlot.GetChild(0)?.name || Input.GetKey(KeyCode.E) ||  (other.gameObject.TryGetComponent(out AidKit aidKit) && Hp < 100)) // 仮置きでPickUpItemと同じ条件も使う
             {
                 if (netObj.HasStateAuthority) PickUpItem(other.gameObject);
                 else netObj.RequestStateAuthority();

@@ -1,32 +1,29 @@
-using System.Collections.Generic;
+using Fusion;
 using TMPro;
 using UnityEngine;
 
-public class NoticeText : MonoBehaviour
+public class NoticeText : NetworkBehaviour
 {
     private TextMeshProUGUI _displayText;
     private float _elapsedTime;
-    private bool _isNoRoom;
+
+    public RoomSelector roomSelector;
+    
     private void Start(){
         _displayText = GetComponent<TextMeshProUGUI>();
-        // if (!PhotonNetwork.InLobby){
-            // _displayText.text = "Connecting online...";
-        // }
+        _displayText.text = "Connecting online...";
     }
 
     private void Update()
     {
-        if (!_isNoRoom) return;
+        if (roomSelector.cashedSessionList is not null && roomSelector.cashedSessionList.Count != 0)
+        {
+            _displayText.text = "";
+            return;
+        }
         
         _elapsedTime += Time.deltaTime;
         _displayText.text = _elapsedTime > 0.5f ? " No rooms available_" : "No rooms available";
         if (_elapsedTime > 1f) _elapsedTime = 0;
     }
-
-    // public override void OnRoomListUpdate(List<RoomInfo> roomList)
-    // {
-        // _isNoRoom = (roomList.Count == 0);
-        // _displayText.text = roomList.Count == 0 ? "No rooms available" : "";
-    // }
-
 }

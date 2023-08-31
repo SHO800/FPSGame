@@ -2,12 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using Fusion;
 using Fusion.Sockets;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 public enum GameStates: byte
@@ -27,7 +25,6 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     [SerializeField] private GameObject networkDataManagerPrefab;
 
     [SerializeField] private NetworkPrefabRef playerPrefab;
-    private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
 
     private bool _isInitialized; // ゲームを開始したマスターでのみ有効化される TODO:マスターが変わったときのために_isInitializedはすべてのクライアントで有効にしておき、IsMaster的なのでスポーンするクライアントを変更するべきな気がする
     
@@ -57,15 +54,17 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         _runner = gameObject.AddComponent<NetworkRunner>();
         _runner.ProvideInput = true;
         
-        // await _runner.JoinSessionLobby(SessionLobby.ClientServer); // ロビー参加 TODO: StartSceneを飛ばしている
-        //Debugging
-        await _runner.StartGame(new StartGameArgs()
-        {
-            SessionName = "test",
-            GameMode = GameMode.Shared,
-            Scene = SceneManager.GetActiveScene().buildIndex + 1,
-            SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
-        });
+        
+        await _runner.JoinSessionLobby(SessionLobby.ClientServer); // ロビー参加
+        
+        //Debugging TODO: StartSceneを飛ばしている
+        // await _runner.StartGame(new StartGameArgs()
+        // {
+        //     SessionName = "test",
+        //     GameMode = GameMode.Shared,
+        //     Scene = SceneManager.GetActiveScene().buildIndex + 1,
+        //     SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
+        // });
     }
 
     private void Update()
@@ -138,6 +137,7 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         
         if (totalChance <= 0)
         {
+            Debug.LogAssertion("NetworkManagerのspawnChanceの合計が100じゃないです");
             return;
         }
         while (spawnItem is null && retryCount < 10)
@@ -189,7 +189,7 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
     private IEnumerator SpawnPlayer(PlayerRef player)
     {
         
-        yield return new WaitUntil(() => _isGameSceneLoaded);
+        yield return new WaitUntil(() => _isGameSceneLoaded); //ロードが終わるまで待つ
         
         // 各プレイヤー固有の座標を生成
         Vector3 spawnPosition = new Vector3((player.RawEncoded % Runner.Config.Simulation.DefaultPlayers) * 3, 1, 0);
@@ -200,8 +200,10 @@ public class NetworkManager : NetworkBehaviour, INetworkRunnerCallbacks
         
         //NetworkDataManagerを取得
         NetworkDataManager ??= GameObject.Find("NetworkDataManager(Clone)").GetComponent<NetworkDataManager>(); //NetworkDataManagerの名前から(Clone)を消したかったけどなんか普通の方法ではできなかった
-        
-        // StartGame();
+
+        var blind = GameObject.Find("Blind");
+        if (blind is null) Debug.LogAssertion("Blindが見つかりませんでした");
+        else blind.GetComponent<Blind>().FadeOut(); // 画面を徐々に表示する
     }
 
     private void StartGame()
